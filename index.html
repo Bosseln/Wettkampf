@@ -2,9 +2,9 @@
 <html lang="de">
 <head>
   <meta charset="utf-8">
-  <title>Wettkampf Scoreboard – Boßel App</title>
+  <title>Boßel Wettkampf Scoreboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Manifest und iOS-spezifische Meta-Tags (optional für PWA) -->
+  <!-- Optionale PWA-Tags -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -23,15 +23,16 @@
     .groupContainer { border: 2px solid #000; padding: 10px; margin-bottom: 20px; }
     .teamSection { border: 1px solid #888; padding: 5px; margin: 5px 0; }
     .teamSection button { margin-right: 5px; }
-    .rounds { margin: 5px 0; }
-    .rounds input { margin-right: 3px; }
+    .table-container { overflow-x: auto; margin-top: 5px; }
+    table { border-collapse: collapse; width: 100%; max-width: 100%; }
+    th, td { border: 1px solid #000; padding: 3px; text-align: center; }
     .result { font-weight: bold; margin-top: 5px; }
   </style>
 </head>
 <body>
-  <h1>Wettkampf Scoreboard – Boßel App</h1>
+  <h1>Boßel Wettkampf Scoreboard</h1>
   
-  <!-- Bereich: Wettkampf erstellen / beitreten -->
+  <!-- Wettbewerbs-Erstellungs-/Beitrittsbereich -->
   <div id="competitionUI" class="container">
     <h2>Wettkampf erstellen</h2>
     <input type="text" id="compName" placeholder="Wettkampfname">
@@ -45,17 +46,17 @@
     <div id="compMessage"></div>
   </div>
   
-  <!-- Bereich: Scoreboard (wird angezeigt, wenn ein Wettkampf erstellt oder beigetreten wurde) -->
+  <!-- Scoreboard-Bereich (wird angezeigt, wenn ein Wettkampf erstellt/beitreten wurde) -->
   <div id="scoreboardUI" class="container hidden">
     <h2>Wettkampf Scoreboard (ID: <span id="displayCompId"></span>)</h2>
     <div id="groupsContainer">
-      <!-- Hier werden 4 Gruppen dynamisch eingefügt -->
+      <!-- Vier Gruppen werden hier eingefügt -->
     </div>
   </div>
   
-  <!-- Firebase- und App-Logik -->
+  <!-- Firebase und App-Logik -->
   <script>
-    // Firebase-Konfiguration (ersetze diese Werte durch deine eigenen)
+    // Firebase-Konfiguration (ersetze durch deine Werte)
     const firebaseConfig = {
       apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
       authDomain: "wettkampf-f6f92.firebaseapp.com",
@@ -70,10 +71,18 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
+    // Definiere die 4 Gruppen mit den gewünschten Namen und IDs
+    const groups = [
+      { id: "holz1", name: "Holz 1" },
+      { id: "holz2", name: "Holz 2" },
+      { id: "gummi1", name: "Gummi 1" },
+      { id: "gummi2", name: "Gummi 2" }
+    ];
+    
     // Global: Aktuelle Wettkampf-ID
     let currentCompId = null;
     
-    // DOM-Elemente für den Wettkampf-Bereich
+    // DOM-Elemente (Wettkampf UI)
     const competitionUI = document.getElementById("competitionUI");
     const createCompBtn = document.getElementById("createCompBtn");
     const compNameInput = document.getElementById("compName");
@@ -83,11 +92,12 @@
     const joinCompPasswordInput = document.getElementById("joinCompPassword");
     const compMessageDiv = document.getElementById("compMessage");
     
+    // DOM-Elemente (Scoreboard UI)
     const scoreboardUI = document.getElementById("scoreboardUI");
     const displayCompIdSpan = document.getElementById("displayCompId");
     const groupsContainer = document.getElementById("groupsContainer");
     
-    // Funktion: Generiere zufällige Wettkampf-ID (6 Zeichen)
+    // Hilfsfunktion: Generiere zufällige Wettkampf-ID (6 Zeichen)
     function generateCompId(length) {
       let result = '';
       const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -97,7 +107,28 @@
       return result;
     }
     
-    // Event-Listener: Wettkampf erstellen
+    // Erstelle den initialen Zustand für eine Gruppe
+    function createInitialGroupState() {
+      return {
+        topTeam: {
+          verein: "",
+          schoet: 0,
+          meter: 0,
+          leadership: false,
+          // 15 Runden (Checkboxen)
+          checkboxes: Array(15).fill(false)
+        },
+        bottomTeam: {
+          verein: "",
+          schoet: 0,
+          meter: 0,
+          leadership: false,
+          checkboxes: Array(15).fill(false)
+        }
+      };
+    }
+    
+    // Wettkampf erstellen
     createCompBtn.addEventListener('click', () => {
       const compName = compNameInput.value.trim();
       const compPassword = compPasswordInput.value.trim();
@@ -108,14 +139,14 @@
       const compId = generateCompId(6);
       const compData = {
         name: compName,
-        password: compPassword,  // Hinweis: In Produktion sicherer speichern!
+        password: compPassword,  // In Produktion sicherer speichern!
         createdAt: Date.now(),
-        groups: {}  // Wir füllen später 4 Gruppen
+        groups: {}
       };
-      // Erstelle 4 Gruppen mit dem Zustand unserer Scoreboard-App
-      for (let i = 1; i <= 4; i++) {
-        compData.groups["group" + i] = createInitialGroupState();
-      }
+      // Erstelle für jede Gruppe den initialen Zustand
+      groups.forEach(group => {
+        compData.groups[group.id] = createInitialGroupState();
+      });
       db.ref('competitions/' + compId).set(compData)
         .then(() => {
           compMessageDiv.innerHTML = `Wettkampf erstellt! ID: <strong></strong>`;
@@ -126,7 +157,7 @@
         });
     });
     
-    // Event-Listener: Wettkampf beitreten
+    // Wettkampf beitreten
     joinCompBtn.addEventListener('click', () => {
       const compId = joinCompIdInput.value.trim();
       const compPassword = joinCompPasswordInput.value.trim();
@@ -153,7 +184,7 @@
         });
     });
     
-    // Funktion: Nach Erstellen/Beitreten in den Scoreboard-Modus wechseln
+    // Wechsel in den Scoreboard-Modus
     function enterCompetition(compId) {
       currentCompId = compId;
       displayCompIdSpan.textContent = compId;
@@ -163,98 +194,99 @@
       setupFirebaseListeners();
     }
     
-    // Erstelle den initialen Zustand für eine Gruppe (die originale Scoreboard-Funktionalität)
-    function createInitialGroupState() {
-      return {
-        topTeam: {
-          verein: "",
-          schoet: 0,
-          meter: 0,
-          leadership: false,  // false = rot, true = grün
-          checkboxes: [false, false, false, false, false]  // 5 Runden (kann erweitert werden)
-        },
-        bottomTeam: {
-          verein: "",
-          schoet: 0,
-          meter: 0,
-          leadership: false,
-          checkboxes: [false, false, false, false, false]
-        }
-      };
-    }
-    
-    // Render die 4 Gruppen in den UI-Bereich
+    // Render die 4 Gruppen (Scoreboards) in den UI-Bereich
     function renderAllGroups() {
       groupsContainer.innerHTML = "";
-      for (let i = 1; i <= 4; i++) {
+      groups.forEach(group => {
         const groupDiv = document.createElement("div");
         groupDiv.className = "groupContainer";
-        groupDiv.id = "group" + i;
-        groupDiv.innerHTML = getGroupHTML(i);
+        groupDiv.id = group.id;
+        groupDiv.innerHTML = getGroupHTML(group.id, group.name);
         groupsContainer.appendChild(groupDiv);
-        setupGroupEventListeners(i);
-      }
+        setupGroupEventListeners(group.id);
+      });
     }
     
-    // Liefert den HTML-Code für eine Gruppe (Beispielhaft: 2 Teams mit Checkboxes)
-    function getGroupHTML(groupNum) {
+    // Liefert den HTML-Code für ein Scoreboard einer Gruppe (exakt wie die ursprüngliche Version)
+    function getGroupHTML(groupId, groupName) {
+      // Erstelle HTML für den Top-Team-Bereich mit einer kleinen Tabelle für 15 Runden
+      let topRoundsHTML = `
+        <table>
+          <thead>
+            <tr><th>Runden</th>`;
+      for (let i = 1; i <= 15; i++) {
+        topRoundsHTML += `<th></th>`;
+      }
+      topRoundsHTML += `</tr></thead><tbody><tr>`;
+      for (let i = 1; i <= 15; i++) {
+        topRoundsHTML += `<td><input type="checkbox" id="_top_cb"></td>`;
+      }
+      topRoundsHTML += `</tr></tbody></table>`;
+      
+      // Gleiches für den Bottom-Team-Bereich
+      let bottomRoundsHTML = `
+        <table>
+          <thead>
+            <tr><th>Runden</th>`;
+      for (let i = 1; i <= 15; i++) {
+        bottomRoundsHTML += `<th></th>`;
+      }
+      bottomRoundsHTML += `</tr></thead><tbody><tr>`;
+      for (let i = 1; i <= 15; i++) {
+        bottomRoundsHTML += `<td><input type="checkbox" id="_bottom_cb"></td>`;
+      }
+      bottomRoundsHTML += `</tr></tbody></table>`;
+      
+      // Zusammenbau der gesamten Gruppe
       return `
-      <h2>Gruppe </h2>
-      <div class="teamSection" id="group_topSection">
-        <h3>Team OBEN</h3>
-        <button id="group_top_toggle">Führung</button>
-        <input type="text" id="group_top_verein" placeholder="Verein">
-        <button id="group_top_schoet">Schöööööt!</button>
-        <span id="group_top_schoetDisplay">0</span>
-        <input type="number" id="group_top_meter" value="0">
-        <div class="rounds">
-          <label>Runden:</label>
-          ${[0,1,2,3,4].map(i => `<input type="checkbox" id="group_top_cb">`).join("")}
+        <h2></h2>
+        <div class="teamSection" id="_topSection">
+          <h3>Team OBEN</h3>
+          <button id="_top_toggle">Führung</button>
+          <input type="text" id="_top_verein" placeholder="Verein eintragen...">
+          <button id="_top_schoet">Schöööööt!</button>
+          Schoet: <span id="_top_schoetDisplay">0</span>
+          &nbsp;Meter: <input type="number" id="_top_meter" value="0">
+          <div class="table-container"></div>
         </div>
-      </div>
-      <div class="teamSection" id="group_bottomSection">
-        <h3>Team UNTEN</h3>
-        <button id="group_bottom_toggle">Führung</button>
-        <input type="text" id="group_bottom_verein" placeholder="Verein">
-        <button id="group_bottom_schoet">Schöööööt!</button>
-        <span id="group_bottom_schoetDisplay">0</span>
-        <input type="number" id="group_bottom_meter" value="0">
-        <div class="rounds">
-          <label>Runden:</label>
-          ${[0,1,2,3,4].map(i => `<input type="checkbox" id="group_bottom_cb">`).join("")}
+        <div class="teamSection" id="_bottomSection">
+          <h3>Team UNTEN</h3>
+          <button id="_bottom_toggle">Führung</button>
+          <input type="text" id="_bottom_verein" placeholder="Verein eintragen...">
+          <button id="_bottom_schoet">Schöööööt!</button>
+          Schoet: <span id="_bottom_schoetDisplay">0</span>
+          &nbsp;Meter: <input type="number" id="_bottom_meter" value="0">
+          <div class="table-container"></div>
         </div>
-      </div>
-      <div class="result" id="group_result">
-        Ergebnis: 0 / 0
-      </div>
+        <div class="result" id="_result">Ergebnis: 0.0 / 0</div>
       `;
     }
     
-    // Setze Event-Listener für die UI-Elemente in einer Gruppe
-    function setupGroupEventListeners(groupNum) {
+    // Setze Event-Listener für die UI-Elemente in einer Gruppe und speichere den Zustand in Firebase
+    function setupGroupEventListeners(groupId) {
       // Top-Team
-      const topToggle = document.getElementById(`group_top_toggle`);
-      const topVerein = document.getElementById(`group_top_verein`);
-      const topSchoetBtn = document.getElementById(`group_top_schoet`);
-      const topSchoetDisplay = document.getElementById(`group_top_schoetDisplay`);
-      const topMeter = document.getElementById(`group_top_meter`);
-      
-      // Bottom-Team
-      const bottomToggle = document.getElementById(`group_bottom_toggle`);
-      const bottomVerein = document.getElementById(`group_bottom_verein`);
-      const bottomSchoetBtn = document.getElementById(`group_bottom_schoet`);
-      const bottomSchoetDisplay = document.getElementById(`group_bottom_schoetDisplay`);
-      const bottomMeter = document.getElementById(`group_bottom_meter`);
-      
-      // Checkboxes (Top & Bottom)
-      const topCheckboxes = [];
-      const bottomCheckboxes = [];
-      for (let i = 0; i < 5; i++) {
-        topCheckboxes.push(document.getElementById(`group_top_cb`));
-        bottomCheckboxes.push(document.getElementById(`group_bottom_cb`));
+      const topToggle = document.getElementById(`_top_toggle`);
+      const topVerein = document.getElementById(`_top_verein`);
+      const topSchoetBtn = document.getElementById(`_top_schoet`);
+      const topSchoetDisplay = document.getElementById(`_top_schoetDisplay`);
+      const topMeter = document.getElementById(`_top_meter`);
+      let topCheckboxes = [];
+      for (let i = 1; i <= 15; i++) {
+        topCheckboxes.push(document.getElementById(`_top_cb`));
       }
       
-      // Hilfsfunktion: Speichere den aktuellen Zustand der Gruppe in Firebase
+      // Bottom-Team
+      const bottomToggle = document.getElementById(`_bottom_toggle`);
+      const bottomVerein = document.getElementById(`_bottom_verein`);
+      const bottomSchoetBtn = document.getElementById(`_bottom_schoet`);
+      const bottomSchoetDisplay = document.getElementById(`_bottom_schoetDisplay`);
+      const bottomMeter = document.getElementById(`_bottom_meter`);
+      let bottomCheckboxes = [];
+      for (let i = 1; i <= 15; i++) {
+        bottomCheckboxes.push(document.getElementById(`_bottom_cb`));
+      }
+      
+      // Hilfsfunktion, um den Zustand der Gruppe zu speichern
       function saveGroupState() {
         const state = {
           topTeam: {
@@ -272,25 +304,25 @@
             checkboxes: bottomCheckboxes.map(cb => cb.checked)
           }
         };
-        db.ref('competitions/' + currentCompId + '/groups/group' + groupNum).set(state);
-        updateGroupResult(state, groupNum);
+        db.ref('competitions/' + currentCompId + '/groups/' + groupId).set(state);
+        updateGroupResult(state, groupId);
       }
       
-      // Funktion: Aktualisiere das Ergebnis in der UI (Beispiel: Differenz der Schoet-Zähler und Meter)
-      function updateGroupResult(state, groupNum) {
+      // Aktualisiere das Ergebnis (Beispiel: Differenz der Schoet-Zähler und Meter)
+      function updateGroupResult(state, groupId) {
         let schoetDiff = state.topTeam.schoet - state.bottomTeam.schoet;
-        let meterDiff = Number(topMeter.value) - Number(bottomMeter.value);
-        // Zusätzliche Anpassung: Wenn unteres Team (bottomToggle aktiv, also grün) und Ergebnis positiv -> -0.5, oder umgekehrt
-        if (bottomToggle.classList.contains("active") && schoetDiff > 0) {
+        let meterDiff = Number(state.topTeam.meter) - Number(state.bottomTeam.meter);
+        // Zusätzliche Anpassung: Wenn das untere Team (Führung = grün) aktiv ist und das Ergebnis positiv, -0.5, bzw. umgekehrt
+        if (state.bottomTeam.leadership && schoetDiff > 0) {
           schoetDiff -= 0.5;
-        } else if (topToggle.classList.contains("active") && schoetDiff < 0) {
+        } else if (state.topTeam.leadership && schoetDiff < 0) {
           schoetDiff += 0.5;
         }
-        document.getElementById(`group_result`).textContent =
+        document.getElementById(`_result`).textContent =
           "Ergebnis: " + schoetDiff.toFixed(1) + " / " + meterDiff;
       }
       
-      // Füge Event-Listener hinzu (alle Änderungen speichern)
+      // Füge Event-Listener hinzu
       topToggle.addEventListener("click", () => {
         topToggle.classList.toggle("active");
         topToggle.style.backgroundColor = topToggle.classList.contains("active") ? "green" : "red";
@@ -317,43 +349,25 @@
       bottomCheckboxes.forEach(cb => cb.addEventListener("change", saveGroupState));
     }
     
-    // Setze Firebase-Listener für alle Gruppen
+    // Setze Firebase-Listener für alle Gruppen, damit Änderungen live synchronisiert werden
     function setupFirebaseListeners() {
-      for (let i = 1; i <= 4; i++) {
-        db.ref('competitions/' + currentCompId + '/groups/group' + i).on('value', snapshot => {
+      groups.forEach(group => {
+        db.ref('competitions/' + currentCompId + '/groups/' + group.id).on('value', snapshot => {
           const state = snapshot.val();
           if (state) {
-            updateGroupUI(i, state);
+            updateGroupUI(group.id, state);
           }
         });
-      }
+      });
     }
     
-    // Aktualisiere die UI-Elemente einer Gruppe anhand des Firebase-Zustands
-    function updateGroupUI(groupNum, state) {
+    // Aktualisiere die UI-Elemente einer Gruppe anhand des Zustands aus Firebase
+    function updateGroupUI(groupId, state) {
       // Top-Team
-      const topVerein = document.getElementById(`group_top_verein`);
-      const topSchoetDisplay = document.getElementById(`group_top_schoetDisplay`);
-      const topMeter = document.getElementById(`group_top_meter`);
-      const topToggle = document.getElementById(`group_top_toggle`);
-      const topCheckboxes = [];
-      for (let i = 0; i < 5; i++) {
-        topCheckboxes.push(document.getElementById(`group_top_cb`));
-      }
-      // Bottom-Team
-      const bottomVerein = document.getElementById(`group_bottom_verein`);
-      const bottomSchoetDisplay = document.getElementById(`group_bottom_schoetDisplay`);
-      const bottomMeter = document.getElementById(`group_bottom_meter`);
-      const bottomToggle = document.getElementById(`group_bottom_toggle`);
-      const bottomCheckboxes = [];
-      for (let i = 0; i < 5; i++) {
-        bottomCheckboxes.push(document.getElementById(`group_bottom_cb`));
-      }
-      
-      // Update UI (ohne Event-Listener auszulösen)
-      topVerein.value = state.topTeam.verein;
-      topSchoetDisplay.textContent = state.topTeam.schoet;
-      topMeter.value = state.topTeam.meter;
+      document.getElementById(`_top_verein`).value = state.topTeam.verein;
+      document.getElementById(`_top_schoetDisplay`).textContent = state.topTeam.schoet;
+      document.getElementById(`_top_meter`).value = state.topTeam.meter;
+      const topToggle = document.getElementById(`_top_toggle`);
       if (state.topTeam.leadership) {
         topToggle.classList.add("active");
         topToggle.style.backgroundColor = "green";
@@ -361,13 +375,14 @@
         topToggle.classList.remove("active");
         topToggle.style.backgroundColor = "red";
       }
-      state.topTeam.checkboxes.forEach((val, idx) => {
-        topCheckboxes[idx].checked = val;
-      });
-      
-      bottomVerein.value = state.bottomTeam.verein;
-      bottomSchoetDisplay.textContent = state.bottomTeam.schoet;
-      bottomMeter.value = state.bottomTeam.meter;
+      for (let i = 1; i <= 15; i++) {
+        document.getElementById(`_top_cb`).checked = state.topTeam.checkboxes[i-1];
+      }
+      // Bottom-Team
+      document.getElementById(`_bottom_verein`).value = state.bottomTeam.verein;
+      document.getElementById(`_bottom_schoetDisplay`).textContent = state.bottomTeam.schoet;
+      document.getElementById(`_bottom_meter`).value = state.bottomTeam.meter;
+      const bottomToggle = document.getElementById(`_bottom_toggle`);
       if (state.bottomTeam.leadership) {
         bottomToggle.classList.add("active");
         bottomToggle.style.backgroundColor = "green";
@@ -375,9 +390,9 @@
         bottomToggle.classList.remove("active");
         bottomToggle.style.backgroundColor = "red";
       }
-      state.bottomTeam.checkboxes.forEach((val, idx) => {
-        bottomCheckboxes[idx].checked = val;
-      });
+      for (let i = 1; i <= 15; i++) {
+        document.getElementById(`_bottom_cb`).checked = state.bottomTeam.checkboxes[i-1];
+      }
       
       // Aktualisiere das Ergebnis
       let schoetDiff = state.topTeam.schoet - state.bottomTeam.schoet;
@@ -387,8 +402,8 @@
       } else if (state.topTeam.leadership && schoetDiff < 0) {
         schoetDiff += 0.5;
       }
-      document.getElementById(`group_result`).textContent =
-        "Ergebnis: " + schoetDiff.toFixed(1) + " / " + meterDiff;
+      document.getElementById(`_result`).textContent =
+          "Ergebnis: " + schoetDiff.toFixed(1) + " / " + meterDiff;
     }
     
   </script>
