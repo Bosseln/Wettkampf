@@ -18,10 +18,15 @@
     h1, h2, h3 { margin: 10px 0; }
     .container { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; }
     select, input, button { margin: 5px; padding: 5px; }
-    .table-container { overflow-x: auto; margin-top: 5px; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #000; padding: 3px; text-align: center; }
-    .resultSummary { font-size: 0.9em; margin-top: 10px; }
+    .table-container { overflow-x: auto; margin-top: 10px; }
+    table { border-collapse: collapse; width: 100%; max-width: 900px; }
+    th, td { border: 1px solid #000; padding: 5px; text-align: center; }
+    .team-header { color: #fff; padding: 10px; margin-bottom: 5px; }
+    .red { background-color: red; }
+    .green { background-color: green; }
+    .score-area { margin: 10px 0; font-size: 1.1em; }
+    #genderSelect { margin-left: 10px; margin-right: 10px; }
+    .resultSummary { font-size: 0.9em; margin-top: 20px; }
     .groupHeader { font-weight: bold; margin-top: 20px; }
     .toggleBtn { min-width: 80px; }
   </style>
@@ -29,22 +34,27 @@
 <body>
   <h1>Scoreboard – Boßel Wettkampfrechner</h1>
   
+  <!-- Anzeige der Wettkampf-ID (wichtig zum Beitreten) -->
   <div class="container">
-    <!-- Dropdown zur Gruppenauswahl -->
-    <div>
-      <label for="groupSelect">Gruppe auswählen:</label>
-      <select id="groupSelect">
-        <option value="holz1">Holz 1</option>
-        <option value="holz2">Holz 2</option>
-        <option value="gummi1">Gummi 1</option>
-        <option value="gummi2">Gummi 2</option>
-      </select>
-    </div>
-    <!-- Detaillierte Ansicht der aktuell gewählten Gruppe -->
-    <div id="detailedGroupContainer"></div>
-    <!-- Zusammenfassung aller Gruppen -->
-    <div id="summaryContainer" class="resultSummary"></div>
+    <strong>Wettkampf-ID:</strong> <span id="compIdDisplay"></span>
   </div>
+  
+  <!-- Dropdown zur Gruppenauswahl -->
+  <div class="container">
+    <label for="groupSelect">Gruppe auswählen:</label>
+    <select id="groupSelect">
+      <option value="holz1">Holz 1</option>
+      <option value="holz2">Holz 2</option>
+      <option value="gummi1">Gummi 1</option>
+      <option value="gummi2">Gummi 2</option>
+    </select>
+  </div>
+  
+  <!-- Detaillierte Ansicht der ausgewählten Gruppe (vollständige Original-Oberfläche) -->
+  <div class="container" id="detailedContainer"></div>
+  
+  <!-- Zusammenfassung aller Gruppen -->
+  <div class="container resultSummary" id="summaryContainer"></div>
   
   <script>
     /******** Firebase-Konfiguration ********/
@@ -61,15 +71,16 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    /******** Wettkampf-ID aus der URL lesen ********/
+    /******** Wettkampf-ID aus URL lesen ********/
     function getCompIdFromUrl() {
       const params = new URLSearchParams(window.location.search);
       return params.get("compId");
     }
-    const currentCompId = getCompIdFromUrl();
-    if (!currentCompId) {
+    const compId = getCompIdFromUrl();
+    if (!compId) {
       alert("Keine Wettkampf-ID gefunden!");
     }
+    document.getElementById("compIdDisplay").textContent = compId;
     
     /******** Definition der Gruppen ********/
     const groups = [
@@ -78,31 +89,30 @@
       { id: "gummi1", name: "Gummi 1" },
       { id: "gummi2", name: "Gummi 2" }
     ];
-    let groupStates = {};          // Speichert den Zustand aller Gruppen
-    let selectedGroupId = "holz1"; // Standardmäßig "Holz 1"
+    let groupStates = {};  // Hier werden die Zustände aller Gruppen live gespeichert
+    let selectedGroup = "holz1";  // Standardmäßig wird "Holz 1" angezeigt
     
     /******** DOM-Elemente ********/
     const groupSelect = document.getElementById("groupSelect");
-    const detailedGroupContainer = document.getElementById("detailedGroupContainer");
+    const detailedContainer = document.getElementById("detailedContainer");
     const summaryContainer = document.getElementById("summaryContainer");
     
-    // Setze Dropdown auf Standardgruppe und reagiere auf Wechsel
-    groupSelect.value = selectedGroupId;
+    groupSelect.value = selectedGroup;
     groupSelect.addEventListener("change", (e) => {
-      selectedGroupId = e.target.value;
-      renderDetailedGroup(selectedGroupId);
+      selectedGroup = e.target.value;
+      renderDetailedView(selectedGroup);
     });
     
     /******** Hilfsfunktionen ********/
-    // Erzeugt HTML für eine vollständige Tabelle mit 5 Zeilen (Werfer 1-4, Ersatz 1) und 15 Runden (Checkboxen)
+    // Erzeugt den HTML-Code für eine vollständige Tabelle (5 Zeilen, 15 Spalten)
     function getFullTableHTML(prefix) {
-      const placeholders = ["Werfer 1", "Werfer 2", "Werfer 3", "Werfer 4", "Ersatz 1"];
+      const rows = ["Werfer 1", "Werfer 2", "Werfer 3", "Werfer 4", "Ersatz 1"];
       let html = "<table><thead><tr><th>Werfer</th>";
       for (let i = 1; i <= 15; i++) {
         html += `<th></th>`;
       }
       html += "</tr></thead><tbody>";
-      for (let r = 0; r < placeholders.length; r++) {
+      for (let r = 0; r < rows.length; r++) {
         html += "<tr>";
         html += `<td><input type="text" id="_name" placeholder=""></td>`;
         for (let c = 1; c <= 15; c++) {
@@ -114,52 +124,50 @@
       return html;
     }
     
-    // Erzeugt den HTML-Code der detaillierten Ansicht (Originaloberfläche) für eine Gruppe
-    function getDetailedGroupHTML(groupId, groupName) {
+    // Erzeugt den HTML-Code der detaillierten Ansicht einer Gruppe (Original-Oberfläche)
+    function getDetailedHTML(groupId, groupName) {
       return `
-        <h2></h2>
-        <div class="teamSection" id="_topSection">
-          <h3>Team OBEN</h3>
+        <h2> – Detaillierte Ansicht</h2>
+        <div id="_topTeam" class="team-header red">
           <button class="toggleBtn" id="_top_toggle">Führung</button>
-          <input type="text" id="_top_verein" placeholder="Verein">
+          <input type="text" id="_top_verein" placeholder="Verein eintragen...">
           <button id="_top_schoet">Schöööööt!</button>
-          Schoet: <span id="_top_schoetDisplay">0</span>
+          &nbsp;Schoet: <span id="_top_schoetDisplay">0</span>
           &nbsp;Meter: <input type="number" id="_top_meter" value="0">
-          <div class="table-container">
-            
-          </div>
         </div>
-        <div class="teamSection" id="_bottomSection">
-          <h3>Team UNTEN</h3>
+        <div class="table-container">
+          
+        </div>
+        <div id="_bottomTeam" class="team-header green">
           <button class="toggleBtn" id="_bottom_toggle">Führung</button>
-          <input type="text" id="_bottom_verein" placeholder="Verein">
+          <input type="text" id="_bottom_verein" placeholder="Verein eintragen...">
           <button id="_bottom_schoet">Schöööööt!</button>
-          Schoet: <span id="_bottom_schoetDisplay">0</span>
+          &nbsp;Schoet: <span id="_bottom_schoetDisplay">0</span>
           &nbsp;Meter: <input type="number" id="_bottom_meter" value="0">
-          <div class="table-container">
-            
-          </div>
+        </div>
+        <div class="table-container">
+          
+        </div>
+        <div class="score-area">
+          <strong>Ergebnis Schoet:</strong> <span id="_ergebnisSchoet">0.0</span><br>
+          <strong>Ergebnis Meter:</strong> <span id="_ergebnisMeter">0</span>
         </div>
       `;
     }
     
-    // Rendert die detaillierte Ansicht für die ausgewählte Gruppe und lädt deren gespeicherten Zustand
-    function renderDetailedGroup(groupId) {
-      detailedGroupContainer.innerHTML = getDetailedGroupHTML(groupId, getGroupName(groupId));
-      setupDetailedEventListeners(groupId);
+    // Rendert die detaillierte Ansicht der ausgewählten Gruppe
+    function renderDetailedView(groupId) {
+      const groupName = groups.find(g => g.id === groupId).name;
+      detailedContainer.innerHTML = getDetailedHTML(groupId, groupName);
+      setupDetailedListeners(groupId);
       if (groupStates[groupId]) {
         updateDetailedUI(groupId, groupStates[groupId]);
       }
     }
     
-    function getGroupName(id) {
-      const g = groups.find(gr => gr.id === id);
-      return g ? g.name : "";
-    }
-    
     /******** Detaillierte Ansicht: Event-Listener und UI-Aktualisierung ********/
-    function setupDetailedEventListeners(groupId) {
-      // OBEN: Hole Elemente der detaillierten Ansicht
+    function setupDetailedListeners(groupId) {
+      // OBEN
       const topToggle = document.getElementById(`_top_toggle`);
       const topVerein = document.getElementById(`_top_verein`);
       const topSchoetBtn = document.getElementById(`_top_schoet`);
@@ -175,7 +183,7 @@
         }
         topCheckboxes.push(row);
       }
-      // UNTEN: Hole Elemente
+      // UNTEN
       const bottomToggle = document.getElementById(`_bottom_toggle`);
       const bottomVerein = document.getElementById(`_bottom_verein`);
       const bottomSchoetBtn = document.getElementById(`_bottom_schoet`);
@@ -209,10 +217,11 @@
           names: bottomNames.map(input => input.value),
           checkboxes: bottomCheckboxes.map(row => row.map(cb => cb.checked))
         };
-        db.ref('competitions/' + currentCompId + '/groups/' + groupId).set({
+        db.ref('competitions/' + compId + '/groups/' + groupId).set({
           topTeam: topState,
           bottomTeam: bottomState
         });
+        calculateAndDisplayResult(groupId);
       }
       
       topToggle.addEventListener("click", () => {
@@ -281,34 +290,65 @@
       }
     }
     
-    /******** Firebase-Live-Listener und Summary ********/
+    function calculateAndDisplayResult(groupId) {
+      const topMeter = document.getElementById(`_top_meter`).value;
+      const bottomMeter = document.getElementById(`_bottom_meter`).value;
+      const topSchoet = Number(document.getElementById(`_top_schoetDisplay`).textContent);
+      const bottomSchoet = Number(document.getElementById(`_bottom_schoetDisplay`).textContent);
+      
+      let meterDiff = parseInt(topMeter) - parseInt(bottomMeter);
+      let schoeetDiff = topSchoet - bottomSchoet;
+      
+      const gender = document.getElementById("genderSelect").value;
+      const threshold = (gender === "men") ? 150 : 100;
+      
+      const absMeterDiff = Math.abs(meterDiff);
+      const extraSchoet = Math.floor(absMeterDiff / threshold);
+      
+      if (meterDiff > 0) {
+        schoeetDiff += extraSchoet;
+        meterDiff = meterDiff % threshold;
+      } else if (meterDiff < 0) {
+        schoeetDiff -= extraSchoet;
+        const leftover = absMeterDiff % threshold;
+        meterDiff = -leftover;
+      }
+      
+      if (document.getElementById(`_bottom_toggle`).classList.contains("active") && schoeetDiff > 0) {
+        schoeetDiff -= 0.5;
+      } else if (document.getElementById(`_top_toggle`).classList.contains("active") && schoeetDiff < 0) {
+        schoeetDiff += 0.5;
+      }
+      
+      document.getElementById(`_ergebnisSchoet`).textContent = schoeetDiff.toFixed(1);
+      document.getElementById(`_ergebnisMeter`).textContent = meterDiff.toFixed(0);
+    }
+    
+    /******** Firebase Live-Listener und Summary ********/
     function setupFirebaseListeners() {
       groups.forEach(g => {
-        db.ref('competitions/' + currentCompId + '/groups/' + g.id).on('value', snapshot => {
+        db.ref('competitions/' + compId + '/groups/' + g.id).on('value', snapshot => {
           const state = snapshot.val();
           if (state) {
             groupStates[g.id] = state;
-            if (g.id === selectedGroupId) {
+            if (g.id === selectedGroup) {
               updateDetailedUI(g.id, state);
             }
-            updateSummaryUI();
+            updateSummary();
           }
         });
       });
     }
     
-    // Aktualisiert die Summary aller Gruppen – hier wird auch der führende Verein angezeigt
-    function updateSummaryUI() {
+    function updateSummary() {
       let html = "<div class='groupHeader'>Ergebnisse aller Gruppen:</div>";
       groups.forEach(g => {
         const state = groupStates[g.id];
         if (state) {
-          let schoetDiff = state.topTeam.schoet - state.bottomTeam.schoet;
-          let meterDiff = Number(state.topTeam.meter) - Number(state.bottomTeam.meter);
-          // Führungsschalter-Anpassung (wie im Original)
-          if (state.bottomTeam.leadership && schoetDiff > 0) { schoetDiff -= 0.5; }
-          else if (state.topTeam.leadership && schoetDiff < 0) { schoetDiff += 0.5; }
-          // Bestimme, welcher Verein führt
+          let schDiff = state.topTeam.schoet - state.bottomTeam.schoet;
+          let metDiff = Number(state.topTeam.meter) - Number(state.bottomTeam.meter);
+          if (state.bottomTeam.leadership && schDiff > 0) { schDiff -= 0.5; }
+          else if (state.topTeam.leadership && schDiff < 0) { schDiff += 0.5; }
           let leadingClub = "";
           if (state.topTeam.schoet > state.bottomTeam.schoet) {
             leadingClub = state.topTeam.verein || "Team OBEN";
@@ -325,9 +365,9 @@
       summaryContainer.innerHTML = html;
     }
     
-    // Starte die Live-Listener und rendere initial die detaillierte Ansicht der Standardgruppe
+    // Starte Firebase-Live-Listener und rendere initial die detaillierte Ansicht der Standardgruppe
     setupFirebaseListeners();
-    renderDetailedGroup(selectedGroupId);
+    renderDetailedView(selectedGroup);
   </script>
 </body>
 </html>
