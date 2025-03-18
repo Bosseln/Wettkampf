@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>Boßel Wettkampfrechner</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Optional: Manifest und iOS-spezifische Meta-Tags für PWA -->
+  <!-- Optionale PWA-Tags (Manifest, Apple-Touch-Icon) -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -21,20 +21,21 @@
     input, button, select { margin: 5px; padding: 5px; }
     .hidden { display: none; }
     .dropdownContainer { margin-bottom: 15px; }
-    /* Detaillierte Scoreboard-Tabelle */
+    /* Tabelle für Runden */
     .table-container { overflow-x: auto; margin-top: 5px; }
     table { border-collapse: collapse; width: 100%; }
     th, td { border: 1px solid #000; padding: 3px; text-align: center; }
+    /* Ergebnis-Summary */
     .resultSummary { font-size: 0.9em; margin-top: 10px; }
-    .groupHeader { margin-top: 20px; font-weight: bold; }
-    /* Buttons für Führung togglen */
+    .groupHeader { font-weight: bold; margin-top: 20px; }
+    /* Buttons (z. B. Führung togglen) */
     .toggleBtn { min-width: 80px; }
   </style>
 </head>
 <body>
   <h1>Boßel Wettkampfrechner</h1>
   
-  <!-- Wettkampferstellungs-/Beitrittsbereich -->
+  <!-- Bereich: Wettkampf erstellen / beitreten -->
   <div id="competitionUI" class="container">
     <h2>Wettkampf erstellen</h2>
     <input type="text" id="compName" placeholder="Wettkampfname">
@@ -48,7 +49,7 @@
     <div id="compMessage"></div>
   </div>
   
-  <!-- Nach dem Beitreten: Gruppenauswahl und Scoreboard -->
+  <!-- Hauptbereich: Nach Erstellen/Beitreten -->
   <div id="mainUI" class="container hidden">
     <!-- Dropdown zur Auswahl der anzuzeigenden Gruppe -->
     <div class="dropdownContainer">
@@ -61,16 +62,16 @@
       </select>
     </div>
     
-    <!-- Detaillierte Ansicht der ausgewählten Gruppe -->
+    <!-- Detaillierte Ansicht der aktuell gewählten Gruppe -->
     <div id="detailedGroupContainer"></div>
     
-    <!-- Summary aller Gruppen (immer sichtbar) -->
+    <!-- Zusammenfassung aller Gruppen (immer sichtbar) -->
     <div id="summaryContainer" class="resultSummary"></div>
   </div>
   
   <!-- Firebase- und App-Logik -->
   <script>
-    // Firebase-Konfiguration (verwende deine Werte)
+    /******** Firebase-Konfiguration ********/
     const firebaseConfig = {
       apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
       authDomain: "wettkampf-f6f92.firebaseapp.com",
@@ -84,19 +85,18 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Definition der 4 Gruppen
+    /******** Globale Variablen ********/
     const groups = [
       { id: "holz1", name: "Holz 1" },
       { id: "holz2", name: "Holz 2" },
       { id: "gummi1", name: "Gummi 1" },
       { id: "gummi2", name: "Gummi 2" }
     ];
-    
     let currentCompId = null;      // Aktuelle Wettkampf-ID
-    let groupStates = {};          // Speicherung der aktuellen Zustände aller Gruppen
-    let selectedGroupId = "holz1"; // Standardmäßig "Holz 1"
+    let groupStates = {};          // Aktuelle Zustände aller Gruppen (live)
+    let selectedGroupId = "holz1"; // Standardmäßig wird "Holz 1" angezeigt
     
-    // DOM-Elemente
+    /******** DOM-Elemente ********/
     const competitionUI = document.getElementById("competitionUI");
     const createCompBtn = document.getElementById("createCompBtn");
     const compNameInput = document.getElementById("compName");
@@ -111,17 +111,17 @@
     const detailedGroupContainer = document.getElementById("detailedGroupContainer");
     const summaryContainer = document.getElementById("summaryContainer");
     
-    // Hilfsfunktion: Generiere zufällige Wettkampf-ID (6 Zeichen)
+    /******** Hilfsfunktionen ********/
     function generateCompId(length) {
       let result = '';
-      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * characters.length));
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
       }
       return result;
     }
     
-    // Erstelle initialen Zustand einer Gruppe (wie im Original)
+    // Erzeugt den initialen Zustand einer Gruppe (analog zum Original-Wettkampfrechner)
     function createInitialGroupState() {
       return {
         topTeam: {
@@ -141,39 +141,36 @@
       };
     }
     
-    // Wettkampf erstellen
+    /******** Wettkampferstellung/Beitritt ********/
     createCompBtn.addEventListener('click', () => {
-      const compName = compNameInput.value.trim();
-      const compPassword = compPasswordInput.value.trim();
-      if (!compName || !compPassword) {
+      const name = compNameInput.value.trim();
+      const pass = compPasswordInput.value.trim();
+      if (!name || !pass) {
         alert("Bitte Wettkampfname und Passwort eingeben.");
         return;
       }
       const compId = generateCompId(6);
       let compData = {
-        name: compName,
-        password: compPassword,  // Hinweis: In Produktion sicherer speichern!
+        name: name,
+        password: pass, // Hinweis: Für Produktion besser absichern!
         createdAt: Date.now(),
         groups: {}
       };
-      groups.forEach(group => {
-        compData.groups[group.id] = createInitialGroupState();
+      groups.forEach(g => {
+        compData.groups[g.id] = createInitialGroupState();
       });
       db.ref('competitions/' + compId).set(compData)
         .then(() => {
           compMessageDiv.innerHTML = `Wettkampf erstellt! ID: <strong></strong>`;
           enterCompetition(compId);
         })
-        .catch(error => {
-          console.error("Fehler beim Erstellen des Wettkampfs:", error);
-        });
+        .catch(err => console.error("Fehler beim Erstellen:", err));
     });
     
-    // Wettkampf beitreten
     joinCompBtn.addEventListener('click', () => {
       const compId = joinCompIdInput.value.trim();
-      const compPassword = joinCompPasswordInput.value.trim();
-      if (!compId || !compPassword) {
+      const pass = joinCompPasswordInput.value.trim();
+      if (!compId || !pass) {
         alert("Bitte Wettkampf-ID und Passwort eingeben.");
         return;
       }
@@ -181,7 +178,7 @@
         .then(snapshot => {
           if (snapshot.exists()) {
             const data = snapshot.val();
-            if (data.password === compPassword) {
+            if (data.password === pass) {
               compMessageDiv.innerHTML = "Erfolgreich beigetreten!";
               enterCompetition(compId);
             } else {
@@ -191,58 +188,60 @@
             compMessageDiv.innerHTML = "Wettkampf nicht gefunden.";
           }
         })
-        .catch(error => {
-          console.error("Fehler beim Beitreten:", error);
-        });
+        .catch(err => console.error("Fehler beim Beitreten:", err));
     });
     
-    // Wechsel in den Hauptmodus (Scoreboard)
+    // Nach erfolgreichem Erstellen/Beitreten
     function enterCompetition(compId) {
       currentCompId = compId;
       competitionUI.classList.add("hidden");
       mainUI.classList.remove("hidden");
-      // Starte Firebase-Listener für alle Gruppen
+      // Starte Live-Listener für alle Gruppen
       setupFirebaseListeners();
-      // Standardmäßig Detailansicht für die aktuell gewählte Gruppe rendern
+      // Standardmäßig detaillierte Ansicht für die aktuell ausgewählte Gruppe anzeigen
       renderDetailedGroup(selectedGroupId);
     }
     
-    // Event-Listener für Dropdown-Wechsel
-    groupSelect.addEventListener("change", (e) => {
+    /******** Gruppenauswahl & Detaillierte Ansicht ********/
+    // Dropdown-Änderung: Aktualisiere die Detailansicht
+    groupSelect.addEventListener("change", e => {
       selectedGroupId = e.target.value;
       renderDetailedGroup(selectedGroupId);
     });
     
-    // Render detaillierte Ansicht für eine Gruppe (mit originaler Tabelle und Funktionen)
+    // Rendert die detaillierte Ansicht der ausgewählten Gruppe
     function renderDetailedGroup(groupId) {
-      // Falls wir bereits einen Zustand für diese Gruppe haben, verwenden wir ihn; ansonsten leeren Zustand
-      let state = groupStates[groupId] || createInitialGroupState();
+      // Erzeuge das HTML für den Detailbereich (Original-Oberfläche)
       detailedGroupContainer.innerHTML = getDetailedGroupHTML(groupId, getGroupName(groupId));
+      // Setze Event-Listener für alle UI-Elemente dieser Gruppe
       setupDetailedEventListeners(groupId);
-      updateDetailedUI(groupId, state);
+      // Falls es bereits einen Zustand gibt, aktualisiere die UI
+      if (groupStates[groupId]) {
+        updateDetailedUI(groupId, groupStates[groupId]);
+      }
     }
     
     // Liefert den Gruppennamen anhand der ID
-    function getGroupName(groupId) {
-      const g = groups.find(g => g.id === groupId);
+    function getGroupName(id) {
+      const g = groups.find(gr => gr.id === id);
       return g ? g.name : "";
     }
     
-    // Erzeugt HTML für die detaillierte Ansicht (ähnlich der Originalversion)
+    // Erzeugt das HTML der detaillierten Ansicht (Original-Oberfläche)
     function getDetailedGroupHTML(groupId, groupName) {
-      // Erstelle HTML für den Top-Team-Bereich (mit Tabelle für 15 Runden)
-      let topRounds = `<table><thead><tr><th>Runden</th>`;
-      for (let i = 1; i <= 15; i++) { topRounds += `<th></th>`; }
-      topRounds += `</tr></thead><tbody><tr>`;
-      for (let i = 1; i <= 15; i++) { topRounds += `<td><input type="checkbox" id="_top_cb"></td>`; }
-      topRounds += `</tr></tbody></table>`;
+      // Erstelle die Tabelle für Top-Team
+      let topTable = `<table><thead><tr><th>Runden</th>`;
+      for (let i = 1; i <= 15; i++) { topTable += `<th></th>`; }
+      topTable += `</tr></thead><tbody><tr>`;
+      for (let i = 1; i <= 15; i++) { topTable += `<td><input type="checkbox" id="_top_cb"></td>`; }
+      topTable += `</tr></tbody></table>`;
       
-      // Gleiches für das Bottom-Team
-      let bottomRounds = `<table><thead><tr><th>Runden</th>`;
-      for (let i = 1; i <= 15; i++) { bottomRounds += `<th></th>`; }
-      bottomRounds += `</tr></thead><tbody><tr>`;
-      for (let i = 1; i <= 15; i++) { bottomRounds += `<td><input type="checkbox" id="_bottom_cb"></td>`; }
-      bottomRounds += `</tr></tbody></table>`;
+      // Tabelle für Bottom-Team
+      let bottomTable = `<table><thead><tr><th>Runden</th>`;
+      for (let i = 1; i <= 15; i++) { bottomTable += `<th></th>`; }
+      bottomTable += `</tr></thead><tbody><tr>`;
+      for (let i = 1; i <= 15; i++) { bottomTable += `<td><input type="checkbox" id="_bottom_cb"></td>`; }
+      bottomTable += `</tr></tbody></table>`;
       
       return `
         <h2></h2>
@@ -267,7 +266,7 @@
       `;
     }
     
-    // Setze Event-Listener für die detaillierte Ansicht und speichere Änderungen in Firebase
+    /******** Detaillierte Ansicht: Event-Listener und UI-Aktualisierung ********/
     function setupDetailedEventListeners(groupId) {
       // Top-Team
       const topToggle = document.getElementById(`_top_toggle`);
@@ -279,7 +278,6 @@
       for (let i = 1; i <= 15; i++) {
         topCheckboxes.push(document.getElementById(`_top_cb`));
       }
-      
       // Bottom-Team
       const bottomToggle = document.getElementById(`_bottom_toggle`);
       const bottomVerein = document.getElementById(`_bottom_verein`);
@@ -291,7 +289,7 @@
         bottomCheckboxes.push(document.getElementById(`_bottom_cb`));
       }
       
-      // Funktion zum Speichern des aktuellen Zustands in Firebase
+      // Funktion zum Speichern des Zustands in Firebase
       function saveState() {
         const state = {
           topTeam: {
@@ -312,7 +310,7 @@
         db.ref('competitions/' + currentCompId + '/groups/' + groupId).set(state);
       }
       
-      // Event-Listener hinzufügen
+      // Setze Event-Listener für alle UI-Elemente der detaillierten Ansicht
       topToggle.addEventListener("click", () => {
         topToggle.classList.toggle("active");
         topToggle.style.backgroundColor = topToggle.classList.contains("active") ? "green" : "";
@@ -372,16 +370,16 @@
       }
     }
     
-    // Firebase-Listener für alle Gruppen einrichten und Zustände in groupStates speichern
+    /******** Firebase-Live-Listener und Summary ********/
+    // Setzt Live-Listener für alle Gruppen und speichert Zustände in groupStates
     function setupFirebaseListeners() {
-      groups.forEach(group => {
-        db.ref('competitions/' + currentCompId + '/groups/' + group.id).on('value', snapshot => {
+      groups.forEach(g => {
+        db.ref('competitions/' + currentCompId + '/groups/' + g.id).on('value', snapshot => {
           const state = snapshot.val();
           if (state) {
-            groupStates[group.id] = state;
-            // Aktualisiere detaillierte UI, falls diese Gruppe gerade ausgewählt ist
-            if (group.id === selectedGroupId) {
-              updateDetailedUI(group.id, state);
+            groupStates[g.id] = state;
+            if (g.id === selectedGroupId) {
+              updateDetailedUI(g.id, state);
             }
             updateSummaryUI();
           }
@@ -389,14 +387,15 @@
       });
     }
     
-    // Rendert eine Summary-Ansicht für alle Gruppen (klein unter der detaillierten Ansicht)
+    // Aktualisiert die Zusammenfassung aller Gruppen
     function updateSummaryUI() {
       let html = "<div class='groupHeader'>Ergebnisse aller Gruppen:</div>";
-      groups.forEach(group => {
-        const state = groupStates[group.id];
+      groups.forEach(g => {
+        const state = groupStates[g.id];
         if (state) {
           let schoetDiff = state.topTeam.schoet - state.bottomTeam.schoet;
           let meterDiff = Number(state.topTeam.meter) - Number(state.bottomTeam.meter);
+          // Anpassung: Falls bottomTeam in Führung und Ergebnis positiv, -0.5, bzw. umgekehrt
           if (state.bottomTeam.leadership && schoetDiff > 0) {
             schoetDiff -= 0.5;
           } else if (state.topTeam.leadership && schoetDiff < 0) {
@@ -404,7 +403,7 @@
           }
           html += `<div>: Schoet  / Meter </div>`;
         } else {
-          html += `<div>: noch keine Daten</div>`;
+          html += `<div>: keine Daten</div>`;
         }
       });
       summaryContainer.innerHTML = html;
