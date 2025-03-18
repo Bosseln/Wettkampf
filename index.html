@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <title>Wettkampf Scoreboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Manifest- und iOS-spezifische Meta-Tags (optional für PWA) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1, h2, h3 { margin: 10px 0; }
+    .container { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; }
+    input, button { margin: 5px; padding: 5px; }
+    .hidden { display: none; }
+    .scoreboard { border: 1px solid #000; padding: 10px; margin-top: 20px; }
+    .group { border: 1px solid #888; padding: 10px; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Wettkampf Scoreboard</h1>
+  
+  <!-- Bereich: Wettkampf erstellen -->
+  <div id="createCompetition" class="container">
+    <h2>Wettkampf erstellen</h2>
+    <input type="text" id="compName" placeholder="Wettkampfname">
+    <input type="password" id="compPassword" placeholder="Passwort">
+    <button id="createCompBtn">Wettkampf erstellen</button>
+    <div id="createdCompInfo"></div>
+  </div>
+  
+  <!-- Bereich: Wettkampf beitreten -->
+  <div id="joinCompetition" class="container">
+    <h2>Wettkampf beitreten</h2>
+    <input type="text" id="joinCompId" placeholder="Wettkampf ID">
+    <input type="password" id="joinCompPassword" placeholder="Passwort">
+    <button id="joinCompBtn">Beitreten</button>
+    <div id="joinMessage"></div>
+  </div>
+  
+  <!-- Bereich: Scoreboard (sichtbar, wenn Wettkampf beigetreten wurde) -->
+  <div id="scoreboardSection" class="container hidden">
+    <h2>Wettkampf Scoreboard (ID: <span id="displayCompId"></span>)</h2>
+    <div id="scoreboard"></div>
+  </div>
+  
+  <!-- Firebase SDKs (Compat-Versionen) -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
+  
+  <script>
+    // Ersetze die folgenden Werte durch deine Firebase-Konfiguration!
+    const firebaseConfig = {
+      apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
+      authDomain: "wettkampf-f6f92.firebaseapp.com",
+      projectId: "wettkampf-f6f92",
+      storageBucket: "wettkampf-f6f92.firebasestorage.app",
+      messagingSenderId: "161090727748",
+      appId: "1:161090727748:web:33f4ff7ce4f6e5c08f7111",
+      measurementId: "G-WCV2950HGK"
+    };;
+    
+    // Firebase initialisieren
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    // Hilfsfunktion: Generiere eine zufällige Wettkampf-ID (6 Zeichen)
+    function generateCompId(length) {
+      let result = '';
+      const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      return result;
+    }
+    
+    // DOM-Elemente
+    const createCompBtn = document.getElementById('createCompBtn');
+    const compNameInput = document.getElementById('compName');
+    const compPasswordInput = document.getElementById('compPassword');
+    const createdCompInfoDiv = document.getElementById('createdCompInfo');
+    
+    const joinCompBtn = document.getElementById('joinCompBtn');
+    const joinCompIdInput = document.getElementById('joinCompId');
+    const joinCompPasswordInput = document.getElementById('joinCompPassword');
+    const joinMessageDiv = document.getElementById('joinMessage');
+    
+    const scoreboardSection = document.getElementById('scoreboardSection');
+    const displayCompIdSpan = document.getElementById('displayCompId');
+    const scoreboardDiv = document.getElementById('scoreboard');
+    
+    let currentCompId = null;
+    
+    // Wettkampf erstellen
+    createCompBtn.addEventListener('click', () => {
+      const compName = compNameInput.value;
+      const compPassword = compPasswordInput.value;
+      if (!compName || !compPassword) {
+        alert("Bitte Wettkampfname und Passwort eingeben.");
+        return;
+      }
+      const compId = generateCompId(6);
+      // Datenstruktur für den Wettkampf:
+      const compData = {
+        name: compName,
+        password: compPassword,  // In Produktion sicherer speichern!
+        createdAt: Date.now(),
+        groups: {
+          group1: { schoet: 0, wuerfe: 0, fuehrung: 0 },
+          group2: { schoet: 0, wuerfe: 0, fuehrung: 0 },
+          group3: { schoet: 0, wuerfe: 0, fuehrung: 0 },
+          group4: { schoet: 0, wuerfe: 0, fuehrung: 0 }
+        }
+      };
+      db.ref('competitions/' + compId).set(compData)
+        .then(() => {
+          createdCompInfoDiv.innerHTML = `Wettkampf erstellt! ID: <strong></strong>`;
+        })
+        .catch((error) => {
+          console.error("Fehler beim Erstellen des Wettkampfs:", error);
+        });
+    });
+    
+    // Wettkampf beitreten
+    joinCompBtn.addEventListener('click', () => {
+      const compId = joinCompIdInput.value;
+      const compPassword = joinCompPasswordInput.value;
+      if (!compId || !compPassword) {
+        alert("Bitte Wettkampf ID und Passwort eingeben.");
+        return;
+      }
+      db.ref('competitions/' + compId).get()
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            if (data.password === compPassword) {
+              joinMessageDiv.innerHTML = "Erfolgreich beigetreten!";
+              currentCompId = compId;
+              displayCompIdSpan.textContent = compId;
+              scoreboardSection.classList.remove('hidden');
+              setupScoreboardListener(compId);
+            } else {
+              joinMessageDiv.innerHTML = "Falsches Passwort.";
+            }
+          } else {
+            joinMessageDiv.innerHTML = "Wettkampf nicht gefunden.";
+          }
+        })
+        .catch((error) => {
+          console.error("Fehler beim Beitreten:", error);
+        });
+    });
+    
+    // Richte Echtzeit-Listener für das Scoreboard ein
+    function setupScoreboardListener(compId) {
+      db.ref('competitions/' + compId + '/groups').on('value', (snapshot) => {
+        const groups = snapshot.val();
+        renderScoreboard(groups);
+      });
+    }
+    
+    // Render-Funktion für das Scoreboard (4 Gruppen)
+    function renderScoreboard(groups) {
+      scoreboardDiv.innerHTML = ""; // Vorherige Inhalte löschen
+      for (const group in groups) {
+        const groupData = groups[group];
+        // Erstelle Container für jede Gruppe
+        const groupDiv = document.createElement('div');
+        groupDiv.classList.add('group');
+        groupDiv.innerHTML = `
+          <h3></h3>
+          <label>Schoet: </label>
+          <input type="number" id="_schoet" value="">
+          <label>Würfe: </label>
+          <input type="number" id="_wuerfe" value="">
+          <label>Führung: </label>
+          <input type="number" id="_fuehrung" value="">
+          <button onclick="updateGroup('')">Aktualisieren</button>
+        `;
+        scoreboardDiv.appendChild(groupDiv);
+      }
+    }
+    
+    // Funktion zum Aktualisieren einer Gruppe in Firebase
+    function updateGroup(group) {
+      const schoetInput = document.getElementById(`_schoet`);
+      const wuerfeInput = document.getElementById(`_wuerfe`);
+      const fuehrungInput = document.getElementById(`_fuehrung`);
+      const updatedData = {
+        schoet: Number(schoetInput.value),
+        wuerfe: Number(wuerfeInput.value),
+        fuehrung: Number(fuehrungInput.value)
+      };
+      db.ref('competitions/' + currentCompId + '/groups/' + group).update(updatedData)
+        .then(() => {
+          console.log(` erfolgreich aktualisiert.`);
+        })
+        .catch((error) => {
+          console.error("Fehler beim Aktualisieren von " + group, error);
+        });
+    }
+    
+    // Damit die updateGroup-Funktion auch im Inline-HTML aufrufbar ist
+    window.updateGroup = updateGroup;
+    
+  </script>
+</body>
+</html>
