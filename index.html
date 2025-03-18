@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="utf-8">
-  <title>Wettkampf Scoreboard</title>
+  <title>Wettkampf Scoreboard – Boßel App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Manifest und iOS-spezifische Meta-Tags (optional für PWA) -->
   <link rel="manifest" href="manifest.json">
@@ -15,67 +15,47 @@
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
   
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    h1, h2, h3 {
-      margin: 10px 0;
-    }
-    .container {
-      margin-bottom: 20px;
-      padding: 10px;
-      border: 1px solid #ccc;
-    }
-    input, button {
-      margin: 5px;
-      padding: 5px;
-    }
-    .hidden {
-      display: none;
-    }
-    .scoreboard {
-      border: 1px solid #000;
-      padding: 10px;
-      margin-top: 20px;
-    }
-    .group {
-      border: 1px solid #888;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1, h2, h3 { margin: 10px 0; }
+    .container { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; }
+    input, button { margin: 5px; padding: 5px; }
+    .hidden { display: none; }
+    .groupContainer { border: 2px solid #000; padding: 10px; margin-bottom: 20px; }
+    .teamSection { border: 1px solid #888; padding: 5px; margin: 5px 0; }
+    .teamSection button { margin-right: 5px; }
+    .rounds { margin: 5px 0; }
+    .rounds input { margin-right: 3px; }
+    .result { font-weight: bold; margin-top: 5px; }
   </style>
 </head>
 <body>
-  <h1>Wettkampf Scoreboard</h1>
+  <h1>Wettkampf Scoreboard – Boßel App</h1>
   
-  <!-- Bereich: Wettkampf erstellen -->
-  <div id="createCompetition" class="container">
+  <!-- Bereich: Wettkampf erstellen / beitreten -->
+  <div id="competitionUI" class="container">
     <h2>Wettkampf erstellen</h2>
     <input type="text" id="compName" placeholder="Wettkampfname">
     <input type="password" id="compPassword" placeholder="Passwort">
     <button id="createCompBtn">Wettkampf erstellen</button>
-    <div id="createdCompInfo"></div>
-  </div>
-  
-  <!-- Bereich: Wettkampf beitreten -->
-  <div id="joinCompetition" class="container">
-    <h2>Wettkampf beitreten</h2>
+    <br><br>
+    <h2>ODER Wettkampf beitreten</h2>
     <input type="text" id="joinCompId" placeholder="Wettkampf ID">
     <input type="password" id="joinCompPassword" placeholder="Passwort">
     <button id="joinCompBtn">Beitreten</button>
-    <div id="joinMessage"></div>
+    <div id="compMessage"></div>
   </div>
   
-  <!-- Bereich: Scoreboard (sichtbar, wenn Wettkampf beigetreten wurde) -->
-  <div id="scoreboardSection" class="container hidden">
+  <!-- Bereich: Scoreboard (wird angezeigt, wenn ein Wettkampf erstellt oder beigetreten wurde) -->
+  <div id="scoreboardUI" class="container hidden">
     <h2>Wettkampf Scoreboard (ID: <span id="displayCompId"></span>)</h2>
-    <div id="scoreboard"></div>
+    <div id="groupsContainer">
+      <!-- Hier werden 4 Gruppen dynamisch eingefügt -->
+    </div>
   </div>
   
-  <!-- Firebase-Konfiguration und App-Logik -->
+  <!-- Firebase- und App-Logik -->
   <script>
-    // Firebase-Konfiguration (ersetze hier durch deine Werte)
+    // Firebase-Konfiguration (ersetze diese Werte durch deine eigenen)
     const firebaseConfig = {
       apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
       authDomain: "wettkampf-f6f92.firebaseapp.com",
@@ -87,11 +67,27 @@
       measurementId: "G-WCV2950HGK"
     };
     
-    // Firebase initialisieren
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Hilfsfunktion: Generiere eine zufällige Wettkampf-ID (6 Zeichen)
+    // Global: Aktuelle Wettkampf-ID
+    let currentCompId = null;
+    
+    // DOM-Elemente für den Wettkampf-Bereich
+    const competitionUI = document.getElementById("competitionUI");
+    const createCompBtn = document.getElementById("createCompBtn");
+    const compNameInput = document.getElementById("compName");
+    const compPasswordInput = document.getElementById("compPassword");
+    const joinCompBtn = document.getElementById("joinCompBtn");
+    const joinCompIdInput = document.getElementById("joinCompId");
+    const joinCompPasswordInput = document.getElementById("joinCompPassword");
+    const compMessageDiv = document.getElementById("compMessage");
+    
+    const scoreboardUI = document.getElementById("scoreboardUI");
+    const displayCompIdSpan = document.getElementById("displayCompId");
+    const groupsContainer = document.getElementById("groupsContainer");
+    
+    // Funktion: Generiere zufällige Wettkampf-ID (6 Zeichen)
     function generateCompId(length) {
       let result = '';
       const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -101,27 +97,10 @@
       return result;
     }
     
-    // DOM-Elemente abrufen
-    const createCompBtn = document.getElementById('createCompBtn');
-    const compNameInput = document.getElementById('compName');
-    const compPasswordInput = document.getElementById('compPassword');
-    const createdCompInfoDiv = document.getElementById('createdCompInfo');
-    
-    const joinCompBtn = document.getElementById('joinCompBtn');
-    const joinCompIdInput = document.getElementById('joinCompId');
-    const joinCompPasswordInput = document.getElementById('joinCompPassword');
-    const joinMessageDiv = document.getElementById('joinMessage');
-    
-    const scoreboardSection = document.getElementById('scoreboardSection');
-    const displayCompIdSpan = document.getElementById('displayCompId');
-    const scoreboardDiv = document.getElementById('scoreboard');
-    
-    let currentCompId = null;
-    
-    // Wettkampf erstellen und automatisch zum Scoreboard wechseln
+    // Event-Listener: Wettkampf erstellen
     createCompBtn.addEventListener('click', () => {
-      const compName = compNameInput.value;
-      const compPassword = compPasswordInput.value;
+      const compName = compNameInput.value.trim();
+      const compPassword = compPasswordInput.value.trim();
       if (!compName || !compPassword) {
         alert("Bitte Wettkampfname und Passwort eingeben.");
         return;
@@ -129,115 +108,289 @@
       const compId = generateCompId(6);
       const compData = {
         name: compName,
-        password: compPassword,  // In Produktion sicherer speichern!
+        password: compPassword,  // Hinweis: In Produktion sicherer speichern!
         createdAt: Date.now(),
-        groups: {
-          group1: { schoet: 0, wuerfe: 0, fuehrung: 0 },
-          group2: { schoet: 0, wuerfe: 0, fuehrung: 0 },
-          group3: { schoet: 0, wuerfe: 0, fuehrung: 0 },
-          group4: { schoet: 0, wuerfe: 0, fuehrung: 0 }
-        }
+        groups: {}  // Wir füllen später 4 Gruppen
       };
-      console.log("Erstelle Wettkampf mit ID:", compId, compData);
+      // Erstelle 4 Gruppen mit dem Zustand unserer Scoreboard-App
+      for (let i = 1; i <= 4; i++) {
+        compData.groups["group" + i] = createInitialGroupState();
+      }
       db.ref('competitions/' + compId).set(compData)
         .then(() => {
-          console.log("Wettkampf erfolgreich erstellt");
-          createdCompInfoDiv.innerHTML = `Wettkampf erstellt! ID: <strong></strong>`;
-          // Automatisches Umschalten: Erstelle den Wettkampf, verstecke Erstellungs- und Beitrittsbereiche und zeige das Scoreboard
-          currentCompId = compId;
-          displayCompIdSpan.textContent = compId;
-          document.getElementById('createCompetition').classList.add('hidden');
-          document.getElementById('joinCompetition').classList.add('hidden');
-          scoreboardSection.classList.remove('hidden');
-          setupScoreboardListener(compId);
+          compMessageDiv.innerHTML = `Wettkampf erstellt! ID: <strong></strong>`;
+          enterCompetition(compId);
         })
-        .catch((error) => {
+        .catch(error => {
           console.error("Fehler beim Erstellen des Wettkampfs:", error);
         });
     });
     
-    // Wettkampf beitreten
+    // Event-Listener: Wettkampf beitreten
     joinCompBtn.addEventListener('click', () => {
-      const compId = joinCompIdInput.value;
-      const compPassword = joinCompPasswordInput.value;
+      const compId = joinCompIdInput.value.trim();
+      const compPassword = joinCompPasswordInput.value.trim();
       if (!compId || !compPassword) {
-        alert("Bitte Wettkampf ID und Passwort eingeben.");
+        alert("Bitte Wettkampf-ID und Passwort eingeben.");
         return;
       }
       db.ref('competitions/' + compId).get()
-        .then((snapshot) => {
+        .then(snapshot => {
           if (snapshot.exists()) {
             const data = snapshot.val();
             if (data.password === compPassword) {
-              joinMessageDiv.innerHTML = "Erfolgreich beigetreten!";
-              currentCompId = compId;
-              displayCompIdSpan.textContent = compId;
-              document.getElementById('createCompetition').classList.add('hidden');
-              document.getElementById('joinCompetition').classList.add('hidden');
-              scoreboardSection.classList.remove('hidden');
-              setupScoreboardListener(compId);
+              compMessageDiv.innerHTML = "Erfolgreich beigetreten!";
+              enterCompetition(compId);
             } else {
-              joinMessageDiv.innerHTML = "Falsches Passwort.";
+              compMessageDiv.innerHTML = "Falsches Passwort.";
             }
           } else {
-            joinMessageDiv.innerHTML = "Wettkampf nicht gefunden.";
+            compMessageDiv.innerHTML = "Wettkampf nicht gefunden.";
           }
         })
-        .catch((error) => {
+        .catch(error => {
           console.error("Fehler beim Beitreten:", error);
         });
     });
     
-    // Richte einen Echtzeit-Listener für das Scoreboard ein
-    function setupScoreboardListener(compId) {
-      db.ref('competitions/' + compId + '/groups').on('value', (snapshot) => {
-        const groups = snapshot.val();
-        renderScoreboard(groups);
-      });
+    // Funktion: Nach Erstellen/Beitreten in den Scoreboard-Modus wechseln
+    function enterCompetition(compId) {
+      currentCompId = compId;
+      displayCompIdSpan.textContent = compId;
+      competitionUI.classList.add("hidden");
+      scoreboardUI.classList.remove("hidden");
+      renderAllGroups();
+      setupFirebaseListeners();
     }
     
-    // Scoreboard rendern (4 Gruppen)
-    function renderScoreboard(groups) {
-      scoreboardDiv.innerHTML = ""; // Vorherige Inhalte löschen
-      for (const group in groups) {
-        const groupData = groups[group];
-        const groupDiv = document.createElement('div');
-        groupDiv.classList.add('group');
-        groupDiv.innerHTML = `
-          <h3></h3>
-          <label>Schoet: </label>
-          <input type="number" id="_schoet" value="">
-          <label>Würfe: </label>
-          <input type="number" id="_wuerfe" value="">
-          <label>Führung: </label>
-          <input type="number" id="_fuehrung" value="">
-          <button onclick="updateGroup('')">Aktualisieren</button>
-        `;
-        scoreboardDiv.appendChild(groupDiv);
+    // Erstelle den initialen Zustand für eine Gruppe (die originale Scoreboard-Funktionalität)
+    function createInitialGroupState() {
+      return {
+        topTeam: {
+          verein: "",
+          schoet: 0,
+          meter: 0,
+          leadership: false,  // false = rot, true = grün
+          checkboxes: [false, false, false, false, false]  // 5 Runden (kann erweitert werden)
+        },
+        bottomTeam: {
+          verein: "",
+          schoet: 0,
+          meter: 0,
+          leadership: false,
+          checkboxes: [false, false, false, false, false]
+        }
+      };
+    }
+    
+    // Render die 4 Gruppen in den UI-Bereich
+    function renderAllGroups() {
+      groupsContainer.innerHTML = "";
+      for (let i = 1; i <= 4; i++) {
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "groupContainer";
+        groupDiv.id = "group" + i;
+        groupDiv.innerHTML = getGroupHTML(i);
+        groupsContainer.appendChild(groupDiv);
+        setupGroupEventListeners(i);
       }
     }
     
-    // Aktualisieren einer Gruppe in Firebase
-    function updateGroup(group) {
-      const schoetInput = document.getElementById(`_schoet`);
-      const wuerfeInput = document.getElementById(`_wuerfe`);
-      const fuehrungInput = document.getElementById(`_fuehrung`);
-      const updatedData = {
-        schoet: Number(schoetInput.value),
-        wuerfe: Number(wuerfeInput.value),
-        fuehrung: Number(fuehrungInput.value)
-      };
-      db.ref('competitions/' + currentCompId + '/groups/' + group).update(updatedData)
-        .then(() => {
-          console.log(` erfolgreich aktualisiert.`);
-        })
-        .catch((error) => {
-          console.error("Fehler beim Aktualisieren von " + group, error);
-        });
+    // Liefert den HTML-Code für eine Gruppe (Beispielhaft: 2 Teams mit Checkboxes)
+    function getGroupHTML(groupNum) {
+      return `
+      <h2>Gruppe </h2>
+      <div class="teamSection" id="group_topSection">
+        <h3>Team OBEN</h3>
+        <button id="group_top_toggle">Führung</button>
+        <input type="text" id="group_top_verein" placeholder="Verein">
+        <button id="group_top_schoet">Schöööööt!</button>
+        <span id="group_top_schoetDisplay">0</span>
+        <input type="number" id="group_top_meter" value="0">
+        <div class="rounds">
+          <label>Runden:</label>
+          ${[0,1,2,3,4].map(i => `<input type="checkbox" id="group_top_cb">`).join("")}
+        </div>
+      </div>
+      <div class="teamSection" id="group_bottomSection">
+        <h3>Team UNTEN</h3>
+        <button id="group_bottom_toggle">Führung</button>
+        <input type="text" id="group_bottom_verein" placeholder="Verein">
+        <button id="group_bottom_schoet">Schöööööt!</button>
+        <span id="group_bottom_schoetDisplay">0</span>
+        <input type="number" id="group_bottom_meter" value="0">
+        <div class="rounds">
+          <label>Runden:</label>
+          ${[0,1,2,3,4].map(i => `<input type="checkbox" id="group_bottom_cb">`).join("")}
+        </div>
+      </div>
+      <div class="result" id="group_result">
+        Ergebnis: 0 / 0
+      </div>
+      `;
     }
     
-    // Damit updateGroup auch in Inline-HTML (z. B. onclick) aufgerufen werden kann
-    window.updateGroup = updateGroup;
+    // Setze Event-Listener für die UI-Elemente in einer Gruppe
+    function setupGroupEventListeners(groupNum) {
+      // Top-Team
+      const topToggle = document.getElementById(`group_top_toggle`);
+      const topVerein = document.getElementById(`group_top_verein`);
+      const topSchoetBtn = document.getElementById(`group_top_schoet`);
+      const topSchoetDisplay = document.getElementById(`group_top_schoetDisplay`);
+      const topMeter = document.getElementById(`group_top_meter`);
+      
+      // Bottom-Team
+      const bottomToggle = document.getElementById(`group_bottom_toggle`);
+      const bottomVerein = document.getElementById(`group_bottom_verein`);
+      const bottomSchoetBtn = document.getElementById(`group_bottom_schoet`);
+      const bottomSchoetDisplay = document.getElementById(`group_bottom_schoetDisplay`);
+      const bottomMeter = document.getElementById(`group_bottom_meter`);
+      
+      // Checkboxes (Top & Bottom)
+      const topCheckboxes = [];
+      const bottomCheckboxes = [];
+      for (let i = 0; i < 5; i++) {
+        topCheckboxes.push(document.getElementById(`group_top_cb`));
+        bottomCheckboxes.push(document.getElementById(`group_bottom_cb`));
+      }
+      
+      // Hilfsfunktion: Speichere den aktuellen Zustand der Gruppe in Firebase
+      function saveGroupState() {
+        const state = {
+          topTeam: {
+            verein: topVerein.value,
+            schoet: Number(topSchoetDisplay.textContent),
+            meter: Number(topMeter.value),
+            leadership: topToggle.classList.contains("active"),
+            checkboxes: topCheckboxes.map(cb => cb.checked)
+          },
+          bottomTeam: {
+            verein: bottomVerein.value,
+            schoet: Number(bottomSchoetDisplay.textContent),
+            meter: Number(bottomMeter.value),
+            leadership: bottomToggle.classList.contains("active"),
+            checkboxes: bottomCheckboxes.map(cb => cb.checked)
+          }
+        };
+        db.ref('competitions/' + currentCompId + '/groups/group' + groupNum).set(state);
+        updateGroupResult(state, groupNum);
+      }
+      
+      // Funktion: Aktualisiere das Ergebnis in der UI (Beispiel: Differenz der Schoet-Zähler und Meter)
+      function updateGroupResult(state, groupNum) {
+        let schoetDiff = state.topTeam.schoet - state.bottomTeam.schoet;
+        let meterDiff = Number(topMeter.value) - Number(bottomMeter.value);
+        // Zusätzliche Anpassung: Wenn unteres Team (bottomToggle aktiv, also grün) und Ergebnis positiv -> -0.5, oder umgekehrt
+        if (bottomToggle.classList.contains("active") && schoetDiff > 0) {
+          schoetDiff -= 0.5;
+        } else if (topToggle.classList.contains("active") && schoetDiff < 0) {
+          schoetDiff += 0.5;
+        }
+        document.getElementById(`group_result`).textContent =
+          "Ergebnis: " + schoetDiff.toFixed(1) + " / " + meterDiff;
+      }
+      
+      // Füge Event-Listener hinzu (alle Änderungen speichern)
+      topToggle.addEventListener("click", () => {
+        topToggle.classList.toggle("active");
+        topToggle.style.backgroundColor = topToggle.classList.contains("active") ? "green" : "red";
+        saveGroupState();
+      });
+      bottomToggle.addEventListener("click", () => {
+        bottomToggle.classList.toggle("active");
+        bottomToggle.style.backgroundColor = bottomToggle.classList.contains("active") ? "green" : "red";
+        saveGroupState();
+      });
+      topSchoetBtn.addEventListener("click", () => {
+        topSchoetDisplay.textContent = Number(topSchoetDisplay.textContent) + 1;
+        saveGroupState();
+      });
+      bottomSchoetBtn.addEventListener("click", () => {
+        bottomSchoetDisplay.textContent = Number(bottomSchoetDisplay.textContent) + 1;
+        saveGroupState();
+      });
+      topVerein.addEventListener("input", saveGroupState);
+      bottomVerein.addEventListener("input", saveGroupState);
+      topMeter.addEventListener("input", saveGroupState);
+      bottomMeter.addEventListener("input", saveGroupState);
+      topCheckboxes.forEach(cb => cb.addEventListener("change", saveGroupState));
+      bottomCheckboxes.forEach(cb => cb.addEventListener("change", saveGroupState));
+    }
+    
+    // Setze Firebase-Listener für alle Gruppen
+    function setupFirebaseListeners() {
+      for (let i = 1; i <= 4; i++) {
+        db.ref('competitions/' + currentCompId + '/groups/group' + i).on('value', snapshot => {
+          const state = snapshot.val();
+          if (state) {
+            updateGroupUI(i, state);
+          }
+        });
+      }
+    }
+    
+    // Aktualisiere die UI-Elemente einer Gruppe anhand des Firebase-Zustands
+    function updateGroupUI(groupNum, state) {
+      // Top-Team
+      const topVerein = document.getElementById(`group_top_verein`);
+      const topSchoetDisplay = document.getElementById(`group_top_schoetDisplay`);
+      const topMeter = document.getElementById(`group_top_meter`);
+      const topToggle = document.getElementById(`group_top_toggle`);
+      const topCheckboxes = [];
+      for (let i = 0; i < 5; i++) {
+        topCheckboxes.push(document.getElementById(`group_top_cb`));
+      }
+      // Bottom-Team
+      const bottomVerein = document.getElementById(`group_bottom_verein`);
+      const bottomSchoetDisplay = document.getElementById(`group_bottom_schoetDisplay`);
+      const bottomMeter = document.getElementById(`group_bottom_meter`);
+      const bottomToggle = document.getElementById(`group_bottom_toggle`);
+      const bottomCheckboxes = [];
+      for (let i = 0; i < 5; i++) {
+        bottomCheckboxes.push(document.getElementById(`group_bottom_cb`));
+      }
+      
+      // Update UI (ohne Event-Listener auszulösen)
+      topVerein.value = state.topTeam.verein;
+      topSchoetDisplay.textContent = state.topTeam.schoet;
+      topMeter.value = state.topTeam.meter;
+      if (state.topTeam.leadership) {
+        topToggle.classList.add("active");
+        topToggle.style.backgroundColor = "green";
+      } else {
+        topToggle.classList.remove("active");
+        topToggle.style.backgroundColor = "red";
+      }
+      state.topTeam.checkboxes.forEach((val, idx) => {
+        topCheckboxes[idx].checked = val;
+      });
+      
+      bottomVerein.value = state.bottomTeam.verein;
+      bottomSchoetDisplay.textContent = state.bottomTeam.schoet;
+      bottomMeter.value = state.bottomTeam.meter;
+      if (state.bottomTeam.leadership) {
+        bottomToggle.classList.add("active");
+        bottomToggle.style.backgroundColor = "green";
+      } else {
+        bottomToggle.classList.remove("active");
+        bottomToggle.style.backgroundColor = "red";
+      }
+      state.bottomTeam.checkboxes.forEach((val, idx) => {
+        bottomCheckboxes[idx].checked = val;
+      });
+      
+      // Aktualisiere das Ergebnis
+      let schoetDiff = state.topTeam.schoet - state.bottomTeam.schoet;
+      let meterDiff = Number(state.topTeam.meter) - Number(state.bottomTeam.meter);
+      if (state.bottomTeam.leadership && schoetDiff > 0) {
+        schoetDiff -= 0.5;
+      } else if (state.topTeam.leadership && schoetDiff < 0) {
+        schoetDiff += 0.5;
+      }
+      document.getElementById(`group_result`).textContent =
+        "Ergebnis: " + schoetDiff.toFixed(1) + " / " + meterDiff;
+    }
+    
   </script>
 </body>
 </html>
