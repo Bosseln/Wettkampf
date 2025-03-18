@@ -78,7 +78,7 @@
       { id: "gummi1", name: "Gummi 1" },
       { id: "gummi2", name: "Gummi 2" }
     ];
-    let groupStates = {};          // Live-Zustände aller Gruppen
+    let groupStates = {};          // Speichert den Zustand aller Gruppen
     let selectedGroupId = "holz1"; // Standardmäßig "Holz 1"
     
     /******** DOM-Elemente ********/
@@ -86,7 +86,7 @@
     const detailedGroupContainer = document.getElementById("detailedGroupContainer");
     const summaryContainer = document.getElementById("summaryContainer");
     
-    // Setze Dropdown auf Standardgruppe
+    // Setze Dropdown auf Standardgruppe und reagiere auf Wechsel
     groupSelect.value = selectedGroupId;
     groupSelect.addEventListener("change", (e) => {
       selectedGroupId = e.target.value;
@@ -94,7 +94,7 @@
     });
     
     /******** Hilfsfunktionen ********/
-    // Erzeugt vollständiges HTML für eine Tabelle mit 5 Zeilen (Werfer 1-4, Ersatz 1) und 15 Runden (Checkboxen)
+    // Erzeugt HTML für eine vollständige Tabelle mit 5 Zeilen (Werfer 1-4, Ersatz 1) und 15 Runden (Checkboxen)
     function getFullTableHTML(prefix) {
       const placeholders = ["Werfer 1", "Werfer 2", "Werfer 3", "Werfer 4", "Ersatz 1"];
       let html = "<table><thead><tr><th>Werfer</th>";
@@ -114,7 +114,7 @@
       return html;
     }
     
-    // Erzeugt den HTML-Code der detaillierten Ansicht einer Gruppe (Original-Oberfläche)
+    // Erzeugt den HTML-Code der detaillierten Ansicht (Originaloberfläche) für eine Gruppe
     function getDetailedGroupHTML(groupId, groupName) {
       return `
         <h2></h2>
@@ -143,7 +143,7 @@
       `;
     }
     
-    // Rendert die detaillierte Ansicht der ausgewählten Gruppe
+    // Rendert die detaillierte Ansicht für die ausgewählte Gruppe und lädt deren gespeicherten Zustand
     function renderDetailedGroup(groupId) {
       detailedGroupContainer.innerHTML = getDetailedGroupHTML(groupId, getGroupName(groupId));
       setupDetailedEventListeners(groupId);
@@ -159,7 +159,7 @@
     
     /******** Detaillierte Ansicht: Event-Listener und UI-Aktualisierung ********/
     function setupDetailedEventListeners(groupId) {
-      // OBEN
+      // OBEN: Hole Elemente der detaillierten Ansicht
       const topToggle = document.getElementById(`_top_toggle`);
       const topVerein = document.getElementById(`_top_verein`);
       const topSchoetBtn = document.getElementById(`_top_schoet`);
@@ -175,7 +175,7 @@
         }
         topCheckboxes.push(row);
       }
-      // UNTEN
+      // UNTEN: Hole Elemente
       const bottomToggle = document.getElementById(`_bottom_toggle`);
       const bottomVerein = document.getElementById(`_bottom_verein`);
       const bottomSchoetBtn = document.getElementById(`_bottom_schoet`);
@@ -297,6 +297,7 @@
       });
     }
     
+    // Aktualisiert die Summary aller Gruppen – hier wird auch der führende Verein angezeigt
     function updateSummaryUI() {
       let html = "<div class='groupHeader'>Ergebnisse aller Gruppen:</div>";
       groups.forEach(g => {
@@ -304,9 +305,19 @@
         if (state) {
           let schoetDiff = state.topTeam.schoet - state.bottomTeam.schoet;
           let meterDiff = Number(state.topTeam.meter) - Number(state.bottomTeam.meter);
+          // Führungsschalter-Anpassung (wie im Original)
           if (state.bottomTeam.leadership && schoetDiff > 0) { schoetDiff -= 0.5; }
           else if (state.topTeam.leadership && schoetDiff < 0) { schoetDiff += 0.5; }
-          html += `<div>: Schoet  / Meter </div>`;
+          // Bestimme, welcher Verein führt
+          let leadingClub = "";
+          if (state.topTeam.schoet > state.bottomTeam.schoet) {
+            leadingClub = state.topTeam.verein || "Team OBEN";
+          } else if (state.topTeam.schoet < state.bottomTeam.schoet) {
+            leadingClub = state.bottomTeam.verein || "Team UNTEN";
+          } else {
+            leadingClub = "gleichstand";
+          }
+          html += `<div>: Schoet Differenz  / Meter . Führung: </div>`;
         } else {
           html += `<div>: keine Daten</div>`;
         }
@@ -314,7 +325,7 @@
       summaryContainer.innerHTML = html;
     }
     
-    // Starte die Live-Listener und rendere initial die detaillierte Ansicht
+    // Starte die Live-Listener und rendere initial die detaillierte Ansicht der Standardgruppe
     setupFirebaseListeners();
     renderDetailedGroup(selectedGroupId);
   </script>
