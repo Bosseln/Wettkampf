@@ -2,12 +2,11 @@
 <html lang="de">
 <head>
   <meta charset="utf-8">
-  <title>Boßel Wettkampfrechner</title>
+  <title>Wettkampf erstellen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Optionale PWA-Tags -->
+  <!-- Optional: Manifest und iOS-Tags für PWA -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
   
   <!-- Firebase SDKs -->
@@ -16,24 +15,14 @@
   
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
-    h1, h2, h3 { margin: 10px 0; }
     .container { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; }
-    input, button, select { margin: 5px; padding: 5px; }
-    .hidden { display: none; }
-    .dropdownContainer { margin-bottom: 15px; }
-    .table-container { overflow-x: auto; margin-top: 5px; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #000; padding: 3px; text-align: center; }
-    .resultSummary { font-size: 0.9em; margin-top: 10px; }
-    .groupHeader { font-weight: bold; margin-top: 20px; }
-    .toggleBtn { min-width: 80px; }
+    input, button { margin: 5px; padding: 5px; }
   </style>
 </head>
 <body>
-  <h1>Boßel Wettkampfrechner</h1>
+  <h1>Wettkampf erstellen / beitreten</h1>
   
-  <!-- Wettkampferstellung / Beitritt -->
-  <div id="competitionUI" class="container">
+  <div class="container" id="competitionUI">
     <h2>Wettkampf erstellen</h2>
     <input type="text" id="compName" placeholder="Wettkampfname">
     <input type="password" id="compPassword" placeholder="Passwort">
@@ -46,28 +35,8 @@
     <div id="compMessage"></div>
   </div>
   
-  <!-- Hauptbereich nach Beitritt/Erstellung -->
-  <div id="mainUI" class="container hidden">
-    <!-- Dropdown zur Gruppenauswahl -->
-    <div class="dropdownContainer">
-      <label for="groupSelect">Gruppe auswählen:</label>
-      <select id="groupSelect">
-        <option value="holz1">Holz 1</option>
-        <option value="holz2">Holz 2</option>
-        <option value="gummi1">Gummi 1</option>
-        <option value="gummi2">Gummi 2</option>
-      </select>
-    </div>
-    
-    <!-- Detaillierte Ansicht der aktuell gewählten Gruppe -->
-    <div id="detailedGroupContainer"></div>
-    
-    <!-- Zusammenfassung aller Gruppen (immer sichtbar) -->
-    <div id="summaryContainer" class="resultSummary"></div>
-  </div>
-  
   <script>
-    /******** Firebase-Konfiguration ********/
+    // Firebase-Konfiguration (ersetze mit deinen Werten)
     const firebaseConfig = {
       apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
       authDomain: "wettkampf-f6f92.firebaseapp.com",
@@ -80,33 +49,8 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    
-    /******** Globale Variablen ********/
-    const groups = [
-      { id: "holz1", name: "Holz 1" },
-      { id: "holz2", name: "Holz 2" },
-      { id: "gummi1", name: "Gummi 1" },
-      { id: "gummi2", name: "Gummi 2" }
-    ];
-    let currentCompId = null;
-    let groupStates = {}; // Live-Zustände aller Gruppen
-    let selectedGroupId = "holz1";
-    
-    /******** DOM-Elemente ********/
-    const competitionUI = document.getElementById("competitionUI");
-    const createCompBtn = document.getElementById("createCompBtn");
-    const compNameInput = document.getElementById("compName");
-    const compPasswordInput = document.getElementById("compPassword");
-    const joinCompBtn = document.getElementById("joinCompBtn");
-    const joinCompIdInput = document.getElementById("joinCompId");
-    const joinCompPasswordInput = document.getElementById("joinCompPassword");
-    const compMessageDiv = document.getElementById("compMessage");
-    const mainUI = document.getElementById("mainUI");
-    const groupSelect = document.getElementById("groupSelect");
-    const detailedGroupContainer = document.getElementById("detailedGroupContainer");
-    const summaryContainer = document.getElementById("summaryContainer");
-    
-    /******** Hilfsfunktionen ********/
+
+    // Hilfsfunktion: Generiere zufällige Wettkampf-ID (6 Zeichen)
     function generateCompId(length) {
       let result = '';
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -115,241 +59,60 @@
       }
       return result;
     }
-    
-    // Erzeugt den initialen Zustand einer Gruppe mit voller Tabelle (5 Zeilen, 15 Spalten)
-    function createInitialGroupState() {
-      const placeholders = ["Werfer 1", "Werfer 2", "Werfer 3", "Werfer 4", "Ersatz 1"];
-      let names = [];
-      let checkboxGrid = [];
-      for (let r = 0; r < placeholders.length; r++) {
-        names.push("");
-        let row = [];
-        for (let c = 0; c < 15; c++) {
-          row.push(false);
-        }
-        checkboxGrid.push(row);
+
+    // Event-Listener für Wettkampferstellung
+    document.getElementById("createCompBtn").addEventListener("click", () => {
+      const name = document.getElementById("compName").value.trim();
+      const pass = document.getElementById("compPassword").value.trim();
+      if (!name || !pass) {
+        alert("Bitte Wettkampfname und Passwort eingeben.");
+        return;
       }
-      return {
-        topTeam: {
-          verein: "",
-          schoet: 0,
-          meter: 0,
-          leadership: false,
-          names: names.slice(),
-          checkboxes: JSON.parse(JSON.stringify(checkboxGrid))
-        },
-        bottomTeam: {
-          verein: "",
-          schoet: 0,
-          meter: 0,
-          leadership: false,
-          names: names.slice(),
-          checkboxes: JSON.parse(JSON.stringify(checkboxGrid))
-        }
+      const compId = generateCompId(6);
+      const compData = {
+        name: name,
+        password: pass,  // In Produktion besser absichern!
+        createdAt: Date.now(),
+        // Für dieses Beispiel speichern wir einfach den Namen und das Passwort.
+        // In einer erweiterten Lösung würden hier auch Gruppen (z. B. Holz 1, Holz 2 usw.) angelegt.
       };
-    }
-    
-    // Liefert HTML für eine vollständige Tabelle (für einen Team-Bereich)
-    function getFullTableHTML(prefix) {
-      let html = '<table><thead><tr><th>Werfer</th>';
-      for (let i = 1; i <= 15; i++) { html += `<th></th>`; }
-      html += '</tr></thead><tbody>';
-      const placeholders = ["Werfer 1", "Werfer 2", "Werfer 3", "Werfer 4", "Ersatz 1"];
-      for (let r = 0; r < placeholders.length; r++) {
-        html += '<tr>';
-        html += `<td><input type="text" id="_name" placeholder=""></td>`;
-        for (let c = 1; c <= 15; c++) {
-          html += `<td><input type="checkbox" id="_cb_"></td>`;
-        }
-        html += '</tr>';
-      }
-      html += '</tbody></table>';
-      return html;
-    }
-    
-    // Erzeugt den HTML-Code der detaillierten Ansicht für eine Gruppe (beinhaltet zwei vollständige Tabellen)
-    function getDetailedGroupHTML(groupId, groupName) {
-      return `
-        <h2></h2>
-        <div class="teamSection" id="_topSection">
-          <h3>Team OBEN</h3>
-          <button class="toggleBtn" id="_top_toggle">Führung</button>
-          <input type="text" id="_top_verein" placeholder="Verein">
-          <button id="_top_schoet">Schöööööt!</button>
-          Schoet: <span id="_top_schoetDisplay">0</span>
-          &nbsp;Meter: <input type="number" id="_top_meter" value="0">
-          <div class="table-container">
-            
-          </div>
-        </div>
-        <div class="teamSection" id="_bottomSection">
-          <h3>Team UNTEN</h3>
-          <button class="toggleBtn" id="_bottom_toggle">Führung</button>
-          <input type="text" id="_bottom_verein" placeholder="Verein">
-          <button id="_bottom_schoet">Schöööööt!</button>
-          Schoet: <span id="_bottom_schoetDisplay">0</span>
-          &nbsp;Meter: <input type="number" id="_bottom_meter" value="0">
-          <div class="table-container">
-            
-          </div>
-        </div>
-      `;
-    }
-    
-    // Rendert die detaillierte Ansicht der aktuell ausgewählten Gruppe
-    function renderDetailedGroup(groupId) {
-      detailedGroupContainer.innerHTML = getDetailedGroupHTML(groupId, getGroupName(groupId));
-      setupDetailedEventListeners(groupId);
-      if (groupStates[groupId]) {
-        updateDetailedUI(groupId, groupStates[groupId]);
-      }
-    }
-    
-    function getGroupName(id) {
-      const g = groups.find(gr => gr.id === id);
-      return g ? g.name : "";
-    }
-    
-    /******** Event-Listener in der detaillierten Ansicht ********/
-    function setupDetailedEventListeners(groupId) {
-      const topToggle = document.getElementById(`_top_toggle`);
-      const topVerein = document.getElementById(`_top_verein`);
-      const topSchoetBtn = document.getElementById(`_top_schoet`);
-      const topSchoetDisplay = document.getElementById(`_top_schoetDisplay`);
-      const topMeter = document.getElementById(`_top_meter`);
-      let topNames = [];
-      let topCheckboxes = [];
-      for (let r = 0; r < 5; r++) {
-        topNames.push(document.getElementById(`_top_name`));
-        let row = [];
-        for (let c = 1; c <= 15; c++) {
-          row.push(document.getElementById(`_top_cb_`));
-        }
-        topCheckboxes.push(row);
-      }
-      const bottomToggle = document.getElementById(`_bottom_toggle`);
-      const bottomVerein = document.getElementById(`_bottom_verein`);
-      const bottomSchoetBtn = document.getElementById(`_bottom_schoet`);
-      const bottomSchoetDisplay = document.getElementById(`_bottom_schoetDisplay`);
-      const bottomMeter = document.getElementById(`_bottom_meter`);
-      let bottomNames = [];
-      let bottomCheckboxes = [];
-      for (let r = 0; r < 5; r++) {
-        bottomNames.push(document.getElementById(`_bottom_name`));
-        let row = [];
-        for (let c = 1; c <= 15; c++) {
-          row.push(document.getElementById(`_bottom_cb_`));
-        }
-        bottomCheckboxes.push(row);
-      }
-      function saveState() {
-        let topState = {
-          verein: topVerein.value,
-          schoet: Number(topSchoetDisplay.textContent),
-          meter: Number(topMeter.value),
-          leadership: topToggle.classList.contains("active"),
-          names: topNames.map(input => input.value),
-          checkboxes: topCheckboxes.map(row => row.map(cb => cb.checked))
-        };
-        let bottomState = {
-          verein: bottomVerein.value,
-          schoet: Number(bottomSchoetDisplay.textContent),
-          meter: Number(bottomMeter.value),
-          leadership: bottomToggle.classList.contains("active"),
-          names: bottomNames.map(input => input.value),
-          checkboxes: bottomCheckboxes.map(row => row.map(cb => cb.checked))
-        };
-        db.ref('competitions/' + currentCompId + '/groups/' + groupId).set({
-          topTeam: topState,
-          bottomTeam: bottomState
+      db.ref('competitions/' + compId).set(compData)
+        .then(() => {
+          // Nach erfolgreicher Erstellung leiten wir weiter:
+          window.location.href = "scoreboard.html?compId=" + compId;
+        })
+        .catch(err => {
+          console.error("Fehler beim Erstellen des Wettkampfs:", err);
+          document.getElementById("compMessage").innerText = "Fehler beim Erstellen.";
         });
+    });
+
+    // Event-Listener für Wettkampfbeitritt
+    document.getElementById("joinCompBtn").addEventListener("click", () => {
+      const compId = document.getElementById("joinCompId").value.trim();
+      const pass = document.getElementById("joinCompPassword").value.trim();
+      if (!compId || !pass) {
+        alert("Bitte Wettkampf-ID und Passwort eingeben.");
+        return;
       }
-      topToggle.addEventListener("click", () => {
-        topToggle.classList.toggle("active");
-        topToggle.style.backgroundColor = topToggle.classList.contains("active") ? "green" : "";
-        saveState();
-      });
-      bottomToggle.addEventListener("click", () => {
-        bottomToggle.classList.toggle("active");
-        bottomToggle.style.backgroundColor = bottomToggle.classList.contains("active") ? "green" : "";
-        saveState();
-      });
-      topSchoetBtn.addEventListener("click", () => {
-        topSchoetDisplay.textContent = Number(topSchoetDisplay.textContent) + 1;
-        saveState();
-      });
-      bottomSchoetBtn.addEventListener("click", () => {
-        bottomSchoetDisplay.textContent = Number(bottomSchoetDisplay.textContent) + 1;
-        saveState();
-      });
-      topVerein.addEventListener("input", saveState);
-      bottomVerein.addEventListener("input", saveState);
-      topMeter.addEventListener("input", saveState);
-      bottomMeter.addEventListener("input", saveState);
-      topNames.forEach(input => input.addEventListener("input", saveState));
-      bottomNames.forEach(input => input.addEventListener("input", saveState));
-      topCheckboxes.forEach(row => row.forEach(cb => cb.addEventListener("change", saveState)));
-      bottomCheckboxes.forEach(row => row.forEach(cb => cb.addEventListener("change", saveState)));
-    }
-    
-    function updateDetailedUI(groupId, state) {
-      if (!state) return;
-      document.getElementById(`_top_verein`).value = state.topTeam.verein;
-      document.getElementById(`_top_schoetDisplay`).textContent = state.topTeam.schoet;
-      document.getElementById(`_top_meter`).value = state.topTeam.meter;
-      const topToggle = document.getElementById(`_top_toggle`);
-      if (state.topTeam.leadership) { topToggle.classList.add("active"); topToggle.style.backgroundColor = "green"; }
-      else { topToggle.classList.remove("active"); topToggle.style.backgroundColor = ""; }
-      for (let r = 0; r < 5; r++) {
-        document.getElementById(`_top_name`).value = state.topTeam.names[r] || "";
-        for (let c = 1; c <= 15; c++) {
-          document.getElementById(`_top_cb_`).checked = state.topTeam.checkboxes[r][c-1];
-        }
-      }
-      document.getElementById(`_bottom_verein`).value = state.bottomTeam.verein;
-      document.getElementById(`_bottom_schoetDisplay`).textContent = state.bottomTeam.schoet;
-      document.getElementById(`_bottom_meter`).value = state.bottomTeam.meter;
-      const bottomToggle = document.getElementById(`_bottom_toggle`);
-      if (state.bottomTeam.leadership) { bottomToggle.classList.add("active"); bottomToggle.style.backgroundColor = "green"; }
-      else { bottomToggle.classList.remove("active"); bottomToggle.style.backgroundColor = ""; }
-      for (let r = 0; r < 5; r++) {
-        document.getElementById(`_bottom_name`).value = state.bottomTeam.names[r] || "";
-        for (let c = 1; c <= 15; c++) {
-          document.getElementById(`_bottom_cb_`).checked = state.bottomTeam.checkboxes[r][c-1];
-        }
-      }
-    }
-    
-    /******** Firebase-Live-Listener & Summary ********/
-    function setupFirebaseListeners() {
-      groups.forEach(g => {
-        db.ref('competitions/' + currentCompId + '/groups/' + g.id).on('value', snapshot => {
-          const state = snapshot.val();
-          if (state) {
-            groupStates[g.id] = state;
-            if (g.id === selectedGroupId) { updateDetailedUI(g.id, state); }
-            updateSummaryUI();
+      db.ref('competitions/' + compId).get()
+        .then(snapshot => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            if (data.password === pass) {
+              window.location.href = "scoreboard.html?compId=" + compId;
+            } else {
+              document.getElementById("compMessage").innerText = "Falsches Passwort.";
+            }
+          } else {
+            document.getElementById("compMessage").innerText = "Wettkampf nicht gefunden.";
           }
+        })
+        .catch(err => {
+          console.error("Fehler beim Beitreten:", err);
+          document.getElementById("compMessage").innerText = "Fehler beim Beitreten.";
         });
-      });
-    }
-    
-    function updateSummaryUI() {
-      let html = "<div class='groupHeader'>Ergebnisse aller Gruppen:</div>";
-      groups.forEach(g => {
-        const state = groupStates[g.id];
-        if (state) {
-          let schoetDiff = state.topTeam.schoet - state.bottomTeam.schoet;
-          let meterDiff = Number(state.topTeam.meter) - Number(state.bottomTeam.meter);
-          if (state.bottomTeam.leadership && schoetDiff > 0) { schoetDiff -= 0.5; }
-          else if (state.topTeam.leadership && schoetDiff < 0) { schoetDiff += 0.5; }
-          html += `<div>: Schoet  / Meter </div>`;
-        } else {
-          html += `<div>: keine Daten</div>`;
-        }
-      });
-      summaryContainer.innerHTML = html;
-    }
+    });
   </script>
 </body>
 </html>
