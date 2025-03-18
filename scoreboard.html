@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8" />
   <title>Scoreboard – Boßel Wettkampfrechner</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Optionale PWA-Tags -->
@@ -34,7 +34,7 @@
 <body>
   <h1>Scoreboard – Boßel Wettkampfrechner</h1>
   
-  <!-- Anzeige der Wettkampf-ID (wichtig zum Beitreten) -->
+  <!-- Anzeige der Wettkampf-ID -->
   <div class="container">
     <strong>Wettkampf-ID:</strong> <span id="compIdDisplay"></span>
   </div>
@@ -50,8 +50,8 @@
     </select>
   </div>
   
-  <!-- Detaillierte Ansicht der ausgewählten Gruppe (vollständige Original-Oberfläche) -->
-  <div class="container" id="detailedContainer"></div>
+  <!-- Container für die detaillierte Scoreboard-Oberfläche -->
+  <div class="container" id="scoreboardContainer"></div>
   
   <!-- Zusammenfassung aller Gruppen -->
   <div class="container resultSummary" id="summaryContainer"></div>
@@ -77,9 +77,7 @@
       return params.get("compId");
     }
     const compId = getCompIdFromUrl();
-    if (!compId) {
-      alert("Keine Wettkampf-ID gefunden!");
-    }
+    if (!compId) { alert("Keine Wettkampf-ID gefunden!"); }
     document.getElementById("compIdDisplay").textContent = compId;
     
     /******** Definition der Gruppen ********/
@@ -89,250 +87,272 @@
       { id: "gummi1", name: "Gummi 1" },
       { id: "gummi2", name: "Gummi 2" }
     ];
-    let groupStates = {};  // Hier werden die Zustände aller Gruppen live gespeichert
-    let selectedGroup = "holz1";  // Standardmäßig wird "Holz 1" angezeigt
+    let groupStates = {}; // Hier werden die Zustände aller Gruppen live gespeichert
+    let selectedGroup = "holz1"; // Standardmäßig "Holz 1"
     
     /******** DOM-Elemente ********/
     const groupSelect = document.getElementById("groupSelect");
-    const detailedContainer = document.getElementById("detailedContainer");
+    const scoreboardContainer = document.getElementById("scoreboardContainer");
     const summaryContainer = document.getElementById("summaryContainer");
     
     groupSelect.value = selectedGroup;
     groupSelect.addEventListener("change", (e) => {
       selectedGroup = e.target.value;
-      renderDetailedView(selectedGroup);
+      renderScoreboard(selectedGroup);
     });
     
-    /******** Hilfsfunktionen ********/
-    // Erzeugt den HTML-Code für eine vollständige Tabelle (5 Zeilen, 15 Spalten)
-    function getFullTableHTML(prefix) {
-      const rows = ["Werfer 1", "Werfer 2", "Werfer 3", "Werfer 4", "Ersatz 1"];
-      let html = "<table><thead><tr><th>Werfer</th>";
-      for (let i = 1; i <= 15; i++) {
-        html += `<th></th>`;
-      }
-      html += "</tr></thead><tbody>";
-      for (let r = 0; r < rows.length; r++) {
-        html += "<tr>";
-        html += `<td><input type="text" id="_name" placeholder=""></td>`;
-        for (let c = 1; c <= 15; c++) {
-          html += `<td><input type="checkbox" id="_cb_"></td>`;
-        }
-        html += "</tr>";
-      }
-      html += "</tbody></table>";
-      return html;
-    }
-    
-    // Erzeugt den HTML-Code der detaillierten Ansicht einer Gruppe (Original-Oberfläche)
-    function getDetailedHTML(groupId, groupName) {
+    /******** Originale Scoreboard-Oberfläche (genau wie von dir gesendet) ********/
+    // Diese Funktion gibt den HTML-Code der Originaloberfläche zurück,
+    // wobei alle Element-IDs mit dem Präfix (groupId + "_") versehen werden.
+    function getScoreboardHTML(groupId) {
       return `
-        <h2> – Detaillierte Ansicht</h2>
-        <div id="_topTeam" class="team-header red">
-          <button class="toggleBtn" id="_top_toggle">Führung</button>
-          <input type="text" id="_top_verein" placeholder="Verein eintragen...">
-          <button id="_top_schoet">Schöööööt!</button>
-          &nbsp;Schoet: <span id="_top_schoetDisplay">0</span>
-          &nbsp;Meter: <input type="number" id="_top_meter" value="0">
-        </div>
-        <div class="table-container">
-          
-        </div>
-        <div id="_bottomTeam" class="team-header green">
-          <button class="toggleBtn" id="_bottom_toggle">Führung</button>
-          <input type="text" id="_bottom_verein" placeholder="Verein eintragen...">
-          <button id="_bottom_schoet">Schöööööt!</button>
-          &nbsp;Schoet: <span id="_bottom_schoetDisplay">0</span>
-          &nbsp;Meter: <input type="number" id="_bottom_meter" value="0">
-        </div>
-        <div class="table-container">
-          
-        </div>
-        <div class="score-area">
-          <strong>Ergebnis Schoet:</strong> <span id="_ergebnisSchoet">0.0</span><br>
-          <strong>Ergebnis Meter:</strong> <span id="_ergebnisMeter">0</span>
-        </div>
+      <!-- Oberes Team (Führung) -->
+      <div id="_topTeam" class="team-header red">
+        <button id="_topTeamToggleBtn">Führung</button>
+        <input type="text" id="_topVerein" placeholder="Verein eintragen..." />
+        <button id="_topSchoetBtn">Schöööööt!</button>
+        &nbsp;Schoet: <span id="_topSchoetDisplay">0</span>
+        &nbsp;Meter: <input type="number" id="_topMeterInput" value="0" />
+      </div>
+      
+      <!-- Tabelle mit Runden, Werfern, Checkboxen -->
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Runden</th>
+              <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
+              <th>6</th><th>7</th><th>8</th><th>9</th><th>10</th>
+              <th>11</th><th>12</th><th>13</th><th>14</th><th>15</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Oberes Team: 5 Zeilen (Werfer 1-4 und Ersatz 1) -->
+            <tr>
+              <td><input type="text" id="_topWerfer1" placeholder="Werfer 1" /></td>
+              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_top_cb1_"></td>`).join('')}
+            </tr>
+            <tr>
+              <td><input type="text" id="_topWerfer2" placeholder="Werfer 2" /></td>
+              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_top_cb2_"></td>`).join('')}
+            </tr>
+            <tr>
+              <td><input type="text" id="_topWerfer3" placeholder="Werfer 3" /></td>
+              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_top_cb3_"></td>`).join('')}
+            </tr>
+            <tr>
+              <td><input type="text" id="_topWerfer4" placeholder="Werfer 4" /></td>
+              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_top_cb4_"></td>`).join('')}
+            </tr>
+            <tr>
+              <td><input type="text" id="_topErsatz1" placeholder="Ersatz 1" /></td>
+              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_top_cb5_"></td>`).join('')}
+            </tr>
+            <!-- Unteres Team: 5 Zeilen (Werfer 1-4 und Ersatz 1) -->
+            <tr>
+              <td><input type="text" id="_bottomWerfer1" placeholder="Werfer 1" /></td>
+              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_bottom_cb1_"></td>`).join('')}
+            </tr>
+            <tr>
+              <td><input type="text" id="_bottomWerfer2" placeholder="Werfer 2" /></td>
+              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_bottom_cb2_"></td>`).join('')}
+            </tr>
+            <tr>
+              <td><input type="text" id="_bottomWerfer3" placeholder="Werfer 3" /></td>
+              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_bottom_cb3_"></td>`).join('')}
+            </tr>
+            <tr>
+              <td><input type="text" id="_bottomWerfer4" placeholder="Werfer 4" /></td>
+              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_bottom_cb4_"></td>`).join('')}
+            </tr>
+            <tr>
+              <td><input type="text" id="_bottomErsatz1" placeholder="Ersatz 1" /></td>
+              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_bottom_cb5_"></td>`).join('')}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Unteres Team (Führung) -->
+      <div id="_bottomTeam" class="team-header green">
+        <button id="_bottomTeamToggleBtn">Führung</button>
+        <input type="text" id="_bottomVerein" placeholder="Verein eintragen..." />
+        <button id="_bottomSchoetBtn">Schöööööt!</button>
+        &nbsp;Schoet: <span id="_bottomSchoetDisplay">0</span>
+        &nbsp;Meter: <input type="number" id="_bottomMeterInput" value="0" />
+      </div>
+      
+      <!-- Ergebnis-Anzeige -->
+      <div class="score-area">
+        <strong>Ergebnis Schoet:</strong> <span id="_ergebnisSchoet">0.0</span><br />
+        <strong>Ergebnis Meter:</strong> <span id="_ergebnisMeter">0</span>
+      </div>
       `;
     }
     
-    // Rendert die detaillierte Ansicht der ausgewählten Gruppe
-    function renderDetailedView(groupId) {
-      const groupName = groups.find(g => g.id === groupId).name;
-      detailedContainer.innerHTML = getDetailedHTML(groupId, groupName);
-      setupDetailedListeners(groupId);
-      if (groupStates[groupId]) {
-        updateDetailedUI(groupId, groupStates[groupId]);
-      }
-    }
+    /******** Event-Listener & Funktionen der Original-Oberfläche ********/
+    // Hier nutzen wir weitgehend den Original-Code (wie von dir gesendet) – die IDs werden dabei mit dem Gruppen-Prefix ergänzt.
+    function setupScoreboardListeners(groupId) {
+      const topTeam = document.getElementById(`_topTeam`);
+      const bottomTeam = document.getElementById(`_bottomTeam`);
     
-    /******** Detaillierte Ansicht: Event-Listener und UI-Aktualisierung ********/
-    function setupDetailedListeners(groupId) {
-      // OBEN
-      const topToggle = document.getElementById(`_top_toggle`);
-      const topVerein = document.getElementById(`_top_verein`);
-      const topSchoetBtn = document.getElementById(`_top_schoet`);
-      const topSchoetDisplay = document.getElementById(`_top_schoetDisplay`);
-      const topMeter = document.getElementById(`_top_meter`);
-      let topNames = [];
-      let topCheckboxes = [];
-      for (let r = 0; r < 5; r++) {
-        topNames.push(document.getElementById(`_top_name`));
-        let row = [];
-        for (let c = 1; c <= 15; c++) {
-          row.push(document.getElementById(`_top_cb_`));
+      const topTeamToggleBtn = document.getElementById(`_topTeamToggleBtn`);
+      const bottomTeamToggleBtn = document.getElementById(`_bottomTeamToggleBtn`);
+    
+      const topSchoetBtn = document.getElementById(`_topSchoetBtn`);
+      const bottomSchoetBtn = document.getElementById(`_bottomSchoetBtn`);
+    
+      const topSchoetDisplay = document.getElementById(`_topSchoetDisplay`);
+      const bottomSchoetDisplay = document.getElementById(`_bottomSchoetDisplay`);
+    
+      const topMeterInput = document.getElementById(`_topMeterInput`);
+      const bottomMeterInput = document.getElementById(`_bottomMeterInput`);
+    
+      const ergebnisSchoet = document.getElementById(`_ergebnisSchoet`);
+      const ergebnisMeter = document.getElementById(`_ergebnisMeter`);
+    
+      const genderSelect = document.getElementById("genderSelect");
+      const resetBtn = document.getElementById("resetBtn");
+    
+      let topSchoet = 0;
+      let bottomSchoet = 0;
+    
+      topTeamToggleBtn.addEventListener("click", () => {
+        if (topTeam.classList.contains("red")) {
+          topTeam.classList.remove("red");
+          topTeam.classList.add("green");
+        } else {
+          topTeam.classList.remove("green");
+          topTeam.classList.add("red");
         }
-        topCheckboxes.push(row);
-      }
-      // UNTEN
-      const bottomToggle = document.getElementById(`_bottom_toggle`);
-      const bottomVerein = document.getElementById(`_bottom_verein`);
-      const bottomSchoetBtn = document.getElementById(`_bottom_schoet`);
-      const bottomSchoetDisplay = document.getElementById(`_bottom_schoetDisplay`);
-      const bottomMeter = document.getElementById(`_bottom_meter`);
-      let bottomNames = [];
-      let bottomCheckboxes = [];
-      for (let r = 0; r < 5; r++) {
-        bottomNames.push(document.getElementById(`_bottom_name`));
-        let row = [];
-        for (let c = 1; c <= 15; c++) {
-          row.push(document.getElementById(`_bottom_cb_`));
+        if (bottomTeam.classList.contains("green")) {
+          bottomTeam.classList.remove("green");
+          bottomTeam.classList.add("red");
+        } else {
+          bottomTeam.classList.remove("red");
+          bottomTeam.classList.add("green");
         }
-        bottomCheckboxes.push(row);
-      }
-      
-      function saveState() {
-        const topState = {
-          verein: topVerein.value,
-          schoet: Number(topSchoetDisplay.textContent),
-          meter: Number(topMeter.value),
-          leadership: topToggle.classList.contains("active"),
-          names: topNames.map(input => input.value),
-          checkboxes: topCheckboxes.map(row => row.map(cb => cb.checked))
-        };
-        const bottomState = {
-          verein: bottomVerein.value,
-          schoet: Number(bottomSchoetDisplay.textContent),
-          meter: Number(bottomMeter.value),
-          leadership: bottomToggle.classList.contains("active"),
-          names: bottomNames.map(input => input.value),
-          checkboxes: bottomCheckboxes.map(row => row.map(cb => cb.checked))
-        };
-        db.ref('competitions/' + compId + '/groups/' + groupId).set({
-          topTeam: topState,
-          bottomTeam: bottomState
-        });
-        calculateAndDisplayResult(groupId);
-      }
-      
-      topToggle.addEventListener("click", () => {
-        topToggle.classList.toggle("active");
-        topToggle.style.backgroundColor = topToggle.classList.contains("active") ? "green" : "";
-        saveState();
+        calculateResult();
       });
-      bottomToggle.addEventListener("click", () => {
-        bottomToggle.classList.toggle("active");
-        bottomToggle.style.backgroundColor = bottomToggle.classList.contains("active") ? "green" : "";
-        saveState();
+    
+      bottomTeamToggleBtn.addEventListener("click", () => {
+        if (bottomTeam.classList.contains("green")) {
+          bottomTeam.classList.remove("green");
+          bottomTeam.classList.add("red");
+        } else {
+          bottomTeam.classList.remove("red");
+          bottomTeam.classList.add("green");
+        }
+        if (topTeam.classList.contains("red")) {
+          topTeam.classList.remove("red");
+          topTeam.classList.add("green");
+        } else {
+          topTeam.classList.remove("green");
+          topTeam.classList.add("red");
+        }
+        calculateResult();
       });
+    
       topSchoetBtn.addEventListener("click", () => {
-        topSchoetDisplay.textContent = Number(topSchoetDisplay.textContent) + 1;
-        saveState();
+        topSchoet++;
+        topSchoetDisplay.textContent = topSchoet;
+        calculateResult();
       });
+    
       bottomSchoetBtn.addEventListener("click", () => {
-        bottomSchoetDisplay.textContent = Number(bottomSchoetDisplay.textContent) + 1;
+        bottomSchoet++;
+        bottomSchoetDisplay.textContent = bottomSchoet;
+        calculateResult();
+      });
+    
+      topMeterInput.addEventListener("input", calculateResult);
+      bottomMeterInput.addEventListener("input", calculateResult);
+    
+      function calculateResult() {
+        let meterDiff = parseInt(topMeterInput.value) - parseInt(bottomMeterInput.value);
+        let schoeetDiff = topSchoet - bottomSchoet;
+        let gender = genderSelect.value;
+        let threshold = (gender === "men") ? 150 : 100;
+    
+        let absMeterDiff = Math.abs(meterDiff);
+        let extraSchoet = Math.floor(absMeterDiff / threshold);
+    
+        if (meterDiff > 0) {
+          schoeetDiff += extraSchoet;
+          meterDiff = meterDiff % threshold;
+        } else if (meterDiff < 0) {
+          schoeetDiff -= extraSchoet;
+          let leftover = absMeterDiff % threshold;
+          meterDiff = -leftover;
+        }
+        
+        if (bottomTeam.classList.contains("green") && schoeetDiff > 0) {
+          schoeetDiff -= 0.5;
+        } else if (topTeam.classList.contains("green") && schoeetDiff < 0) {
+          schoeetDiff += 0.5;
+        }
+    
+        ergebnisSchoet.textContent = schoeetDiff.toFixed(1);
+        ergebnisMeter.textContent = meterDiff.toFixed(0);
+        saveState();
+      }
+    
+      resetBtn.addEventListener("click", () => {
+        document.querySelectorAll('tbody input[type="text"]').forEach(input => {
+          input.value = "";
+        });
+        document.querySelectorAll('tbody input[type="checkbox"]').forEach(checkbox => {
+          checkbox.checked = false;
+        });
+        topSchoet = 0;
+        bottomSchoet = 0;
+        topSchoetDisplay.textContent = 0;
+        bottomSchoetDisplay.textContent = 0;
+        topMeterInput.value = 0;
+        bottomMeterInput.value = 0;
+        document.getElementById(`_topVerein`).value = "";
+        document.getElementById(`_bottomVerein`).value = "";
+        ergebnisSchoet.textContent = "0.0";
+        ergebnisMeter.textContent = "0";
+        genderSelect.value = "men";
+        topTeam.classList.remove("green");
+        topTeam.classList.add("red");
+        bottomTeam.classList.remove("red");
+        bottomTeam.classList.add("green");
         saveState();
       });
-      topVerein.addEventListener("input", saveState);
-      bottomVerein.addEventListener("input", saveState);
-      topMeter.addEventListener("input", saveState);
-      bottomMeter.addEventListener("input", saveState);
-      topNames.forEach(input => input.addEventListener("input", saveState));
-      bottomNames.forEach(input => input.addEventListener("input", saveState));
-      topCheckboxes.forEach(row => row.forEach(cb => cb.addEventListener("change", saveState)));
-      bottomCheckboxes.forEach(row => row.forEach(cb => cb.addEventListener("change", saveState)));
-    }
     
-    function updateDetailedUI(groupId, state) {
-      if (!state) return;
-      document.getElementById(`_top_verein`).value = state.topTeam.verein;
-      document.getElementById(`_top_schoetDisplay`).textContent = state.topTeam.schoet;
-      document.getElementById(`_top_meter`).value = state.topTeam.meter;
-      const topToggle = document.getElementById(`_top_toggle`);
-      if (state.topTeam.leadership) {
-        topToggle.classList.add("active");
-        topToggle.style.backgroundColor = "green";
-      } else {
-        topToggle.classList.remove("active");
-        topToggle.style.backgroundColor = "";
-      }
-      for (let r = 0; r < 5; r++) {
-        document.getElementById(`_top_name`).value = state.topTeam.names[r] || "";
-        for (let c = 1; c <= 15; c++) {
-          document.getElementById(`_top_cb_`).checked = state.topTeam.checkboxes[r][c-1];
-        }
-      }
-      document.getElementById(`_bottom_verein`).value = state.bottomTeam.verein;
-      document.getElementById(`_bottom_schoetDisplay`).textContent = state.bottomTeam.schoet;
-      document.getElementById(`_bottom_meter`).value = state.bottomTeam.meter;
-      const bottomToggle = document.getElementById(`_bottom_toggle`);
-      if (state.bottomTeam.leadership) {
-        bottomToggle.classList.add("active");
-        bottomToggle.style.backgroundColor = "green";
-      } else {
-        bottomToggle.classList.remove("active");
-        bottomToggle.style.backgroundColor = "";
-      }
-      for (let r = 0; r < 5; r++) {
-        document.getElementById(`_bottom_name`).value = state.bottomTeam.names[r] || "";
-        for (let c = 1; c <= 15; c++) {
-          document.getElementById(`_bottom_cb_`).checked = state.bottomTeam.checkboxes[r][c-1];
-        }
+      // Speichert den aktuellen Zustand in Firebase
+      function saveState() {
+        const state = {
+          topTeam: {
+            verein: document.getElementById(`_topVerein`).value,
+            schoet: topSchoet,
+            meter: Number(topMeterInput.value),
+            leadership: topTeam.classList.contains("green"),
+          },
+          bottomTeam: {
+            verein: document.getElementById(`_bottomVerein`).value,
+            schoet: bottomSchoet,
+            meter: Number(bottomMeterInput.value),
+            leadership: bottomTeam.classList.contains("green"),
+          }
+        };
+        db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').set(state);
       }
     }
     
-    function calculateAndDisplayResult(groupId) {
-      const topMeter = document.getElementById(`_top_meter`).value;
-      const bottomMeter = document.getElementById(`_bottom_meter`).value;
-      const topSchoet = Number(document.getElementById(`_top_schoetDisplay`).textContent);
-      const bottomSchoet = Number(document.getElementById(`_bottom_schoetDisplay`).textContent);
-      
-      let meterDiff = parseInt(topMeter) - parseInt(bottomMeter);
-      let schoeetDiff = topSchoet - bottomSchoet;
-      
-      const gender = document.getElementById("genderSelect").value;
-      const threshold = (gender === "men") ? 150 : 100;
-      
-      const absMeterDiff = Math.abs(meterDiff);
-      const extraSchoet = Math.floor(absMeterDiff / threshold);
-      
-      if (meterDiff > 0) {
-        schoeetDiff += extraSchoet;
-        meterDiff = meterDiff % threshold;
-      } else if (meterDiff < 0) {
-        schoeetDiff -= extraSchoet;
-        const leftover = absMeterDiff % threshold;
-        meterDiff = -leftover;
-      }
-      
-      if (document.getElementById(`_bottom_toggle`).classList.contains("active") && schoeetDiff > 0) {
-        schoeetDiff -= 0.5;
-      } else if (document.getElementById(`_top_toggle`).classList.contains("active") && schoeetDiff < 0) {
-        schoeetDiff += 0.5;
-      }
-      
-      document.getElementById(`_ergebnisSchoet`).textContent = schoeetDiff.toFixed(1);
-      document.getElementById(`_ergebnisMeter`).textContent = meterDiff.toFixed(0);
-    }
-    
-    /******** Firebase Live-Listener und Summary ********/
+    /******** Firebase-Live-Listener und Summary ********/
     function setupFirebaseListeners() {
       groups.forEach(g => {
-        db.ref('competitions/' + compId + '/groups/' + g.id).on('value', snapshot => {
+        db.ref('competitions/' + compId + '/groups/' + g.id + '/scoreboard').on('value', snapshot => {
           const state = snapshot.val();
           if (state) {
-            groupStates[g.id] = state;
+            if (!groupStates[g.id]) groupStates[g.id] = {};
+            groupStates[g.id].scoreboard = state;
             if (g.id === selectedGroup) {
-              updateDetailedUI(g.id, state);
+              // Aktualisiere die lokale UI (nur die Zahlen, Verein etc.)
+              updateScoreboardUI(selectedGroup, state);
             }
             updateSummary();
           }
@@ -340,22 +360,34 @@
       });
     }
     
+    function updateScoreboardUI(groupId, state) {
+      // Update OBEN
+      document.getElementById(`_topVerein`).value = state.topTeam.verein;
+      document.getElementById(`_topSchoetDisplay`).textContent = state.topTeam.schoet;
+      document.getElementById(`_topMeterInput`).value = state.topTeam.meter;
+      // Update UNTEN
+      document.getElementById(`_bottomVerein`).value = state.bottomTeam.verein;
+      document.getElementById(`_bottomSchoetDisplay`).textContent = state.bottomTeam.schoet;
+      document.getElementById(`_bottomMeterInput`).value = state.bottomTeam.meter;
+    }
+    
     function updateSummary() {
       let html = "<div class='groupHeader'>Ergebnisse aller Gruppen:</div>";
       groups.forEach(g => {
-        const state = groupStates[g.id];
-        if (state) {
-          let schDiff = state.topTeam.schoet - state.bottomTeam.schoet;
-          let metDiff = Number(state.topTeam.meter) - Number(state.bottomTeam.meter);
-          if (state.bottomTeam.leadership && schDiff > 0) { schDiff -= 0.5; }
-          else if (state.topTeam.leadership && schDiff < 0) { schDiff += 0.5; }
-          let leadingClub = "";
+        if (groupStates[g.id] && groupStates[g.id].scoreboard) {
+          const state = groupStates[g.id].scoreboard;
+          let diff = state.topTeam.schoet - state.bottomTeam.schoet;
+          let meterDiff = state.topTeam.meter - state.bottomTeam.meter;
+          // Führung anpassen:
+          if (state.bottomTeam.leadership && diff > 0) { diff -= 0.5; }
+          else if (state.topTeam.leadership && diff < 0) { diff += 0.5; }
+          let führer = "";
           if (state.topTeam.schoet > state.bottomTeam.schoet) {
-            leadingClub = state.topTeam.verein || "Team OBEN";
+            führer = state.topTeam.verein || "Team OBEN";
           } else if (state.topTeam.schoet < state.bottomTeam.schoet) {
-            leadingClub = state.bottomTeam.verein || "Team UNTEN";
+            führer = state.bottomTeam.verein || "Team UNTEN";
           } else {
-            leadingClub = "gleichstand";
+            führer = "gleichstand";
           }
           html += `<div>: Schoet Differenz  / Meter . Führung: </div>`;
         } else {
@@ -365,9 +397,11 @@
       summaryContainer.innerHTML = html;
     }
     
-    // Starte Firebase-Live-Listener und rendere initial die detaillierte Ansicht der Standardgruppe
-    setupFirebaseListeners();
+    /******** Initialisierung ********/
+    // Render die detaillierte Ansicht der Standardgruppe
     renderDetailedView(selectedGroup);
+    // Starte Firebase-Live-Listener
+    setupFirebaseListeners();
   </script>
 </body>
 </html>
