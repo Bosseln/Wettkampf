@@ -24,20 +24,20 @@
   <div class="container">
     <p><strong>Wettkampfname:</strong> <span id="compNameDisplay"></span></p>
     <p><strong>Wettkampf-ID:</strong> <span id="compIdDisplay"></span></p>
-    <p>Teile die Wettkampf‑ID, damit andere dem Wettkampf beitreten können.</p>
+    <p>Teile die Wettkampf-ID, damit andere dem Wettkampf beitreten können.</p>
   </div>
   
-  <!-- Container für die Gruppenauswahl (Summary-Boxen) -->
+  <!-- Container für die Gruppenselektion (Summary-Boxen) -->
   <div class="container" id="groupsContainer">
     <h2>Gruppe auswählen</h2>
-    <!-- Hier werden die Boxen erstellt -->
+    <!-- Die Boxen werden hier dynamisch erstellt -->
   </div>
   
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
   <script>
-    // Firebase-Konfiguration – ersetze diese Werte mit deinen eigenen
+    // Firebase-Konfiguration – passe diese Werte ggf. an
     const firebaseConfig = {
       apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
       authDomain: "wettkampf-f6f92.firebaseapp.com",
@@ -51,14 +51,14 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Lese URL-Parameter: compId und compName
+    // Lese Wettkampfname und Wettkampf-ID aus der URL, z.B. ?compId=ABC123&compName=MeinWettkampf
     const params = new URLSearchParams(window.location.search);
     const compId = params.get("compId") || "Keine ID";
     const compName = params.get("compName") || "Kein Name";
     document.getElementById("compIdDisplay").textContent = compId;
     document.getElementById("compNameDisplay").textContent = compName;
     
-    // Definiere die Gruppen
+    // Definiere die Gruppen und die Zielseiten
     const groups = [
       { id: "holz1", name: "Holz 1", target: "scoreboardholz1.html" },
       { id: "holz2", name: "Holz 2", target: "scoreboardholz2.html" },
@@ -68,43 +68,49 @@
     
     const groupBoxesContainer = document.getElementById("groupsContainer");
     
-    // Für jede Gruppe wird eine Box erstellt. Die Box zeigt den Gruppennamen und den Top-Team-Schoet-Wert.
-    // Die Hintergrundfarbe wird entsprechend dem Status des oberen Teams gesetzt (grün wenn Führung, sonst rot).
-    // Falls keine Daten vorhanden sind, wird grau als Fallback genutzt.
-    groups.forEach(g => {
-      // Lese die Daten der Gruppe aus Firebase (unter dem Pfad competitions/{compId}/groups/{groupId}/scoreboard/topTeam)
-      db.ref('competitions/' + compId + '/groups/' + g.id + '/scoreboard/topTeam').once('value')
-        .then(snapshot => {
-          const data = snapshot.val();
-          const topSchoet = data && data.schoet ? data.schoet : 0;
-          const isGreen = data && data.leadership;
-          const bgColor = isGreen ? "green" : "red";
-          
-          const box = document.createElement("div");
-          box.className = "groupBox";
-          box.style.backgroundColor = bgColor;
-          box.innerHTML = `<strong></strong><br>Top Schoet: `;
-          box.addEventListener("click", () => {
-            // Weiterleitung zur entsprechenden Scoreboard-Seite mit compId und compName als URL-Parameter
-            window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
-                                    "&compName=" + encodeURIComponent(compName);
+    // Erstelle für jede Gruppe eine Box, in der der Gruppenname und das Ergebnis angezeigt werden
+    function updateGroupBoxes() {
+      // Leere den Container zunächst
+      groupBoxesContainer.innerHTML = "<h2>Gruppe auswählen</h2>";
+      
+      groups.forEach(g => {
+        // Lese die Daten der Gruppe aus Firebase (unter dem Pfad competitions/{compId}/groups/{groupId}/scoreboard/topTeam)
+        db.ref('competitions/' + compId + '/groups/' + g.id + '/scoreboard/topTeam').once('value')
+          .then(snapshot => {
+            const data = snapshot.val();
+            const result = data && data.schoet ? data.schoet : 0;
+            // Bestimme die Hintergrundfarbe anhand der Führung: grün, wenn leadership true, sonst rot
+            const bgColor = data && data.leadership ? "green" : "red";
+            
+            // Erzeuge die Box
+            const box = document.createElement("div");
+            box.className = "groupBox";
+            box.style.backgroundColor = bgColor;
+            box.innerHTML = `<strong></strong><br>Ergebnis: `;
+            box.addEventListener("click", () => {
+              // Weiterleitung zur entsprechenden Scoreboard-Seite mit compId und compName
+              window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
+                                      "&compName=" + encodeURIComponent(compName);
+            });
+            groupBoxesContainer.appendChild(box);
+          })
+          .catch(err => {
+            console.error("Fehler beim Laden der Daten für " + g.name + ":", err);
+            // Fallback-Box
+            const box = document.createElement("div");
+            box.className = "groupBox";
+            box.style.backgroundColor = "gray";
+            box.innerHTML = `<strong></strong><br>Ergebnis: 0`;
+            box.addEventListener("click", () => {
+              window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
+                                      "&compName=" + encodeURIComponent(compName);
+            });
+            groupBoxesContainer.appendChild(box);
           });
-          groupBoxesContainer.appendChild(box);
-        })
-        .catch(err => {
-          console.error("Fehler beim Laden der Daten für " + g.name + ":", err);
-          // Fallback-Box, falls ein Fehler auftritt
-          const box = document.createElement("div");
-          box.className = "groupBox";
-          box.style.backgroundColor = "gray";
-          box.innerHTML = `<strong></strong><br>Keine Daten`;
-          box.addEventListener("click", () => {
-            window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
-                                    "&compName=" + encodeURIComponent(compName);
-          });
-          groupBoxesContainer.appendChild(box);
-        });
-    });
+      });
+    }
+    
+    updateGroupBoxes();
   </script>
 </body>
 </html>
