@@ -64,7 +64,7 @@
 
 <h1>Boßeln Scoreboard – Gummi 1</h1>
 
-<!-- Geschlechtsauswahl (kein Reset, stattdessen wird alles gespeichert) -->
+<!-- Geschlechtsauswahl -->
 <div>
   <label for="genderSelect">Geschlecht:</label>
   <select id="genderSelect">
@@ -96,7 +96,7 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Für das obere Team: 5 Zeilen (Werfer 1, Werfer 2, Werfer 3, Werfer 4, Ersatz 1) -->
+      <!-- Für das obere Team: 5 Zeilen -->
       <tr>
         <td><input type="text" id="gummi1_top_name0" placeholder="Werfer 1" /></td>
         <td><input type="checkbox" id="gummi1_top_cb0_1" /></td>
@@ -363,7 +363,7 @@
   let topSchoet = 0;
   let bottomSchoet = 0;
   
-  // Funktion zum Speichern des Zustands in Firebase (inkl. Tabelle)
+  // Funktion zum Speichern des Zustands in Firebase (inkl. Tabellen und Ergebnis-Anzeige)
   function saveState() {
     const state = {
       topTeam: {
@@ -378,6 +378,8 @@
         meter: Number(bottomMeterInput.value),
         leadership: bottomTeam.classList.contains("green")
       },
+      resultSchoet: ergebnisSchoet.textContent,
+      resultMeter: ergebnisMeter.textContent,
       upperTable: saveTable("upperTable"),
       lowerTable: saveTable("lowerTable")
     };
@@ -437,8 +439,10 @@
             bottomTeam.classList.remove("green");
           }
           
-          loadTable("upperTable", state.upperTable);
-          loadTable("lowerTable", state.lowerTable);
+          if (state.upperTable) loadTable("upperTable", state.upperTable);
+          if (state.lowerTable) loadTable("lowerTable", state.lowerTable);
+          ergebnisSchoet.textContent = state.resultSchoet || "0.0";
+          ergebnisMeter.textContent = state.resultMeter || "0";
           calculateResult();
         }
       })
@@ -549,14 +553,14 @@
   // Lade den gespeicherten Zustand beim Laden der Seite
   loadState();
   
-  // Füge einen "Zurück"-Button hinzu, der vor dem Navigieren den Zustand speichert
+  // Füge einen "Zurück"-Button hinzu, der beim Klicken den Zustand speichert und zur Gruppenselektionsseite zurückführt
   const backBtn = document.createElement("button");
   backBtn.textContent = "Zurück";
   backBtn.style.padding = "10px 15px";
   backBtn.style.fontSize = "1em";
   backBtn.style.cursor = "pointer";
   backBtn.addEventListener("click", () => {
-    saveState(); // Zustand komplett speichern
+    saveState();
     window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId);
   });
   document.body.appendChild(backBtn);
