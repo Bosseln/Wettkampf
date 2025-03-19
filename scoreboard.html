@@ -15,10 +15,15 @@
       cursor: pointer;
       text-align: center;
     }
-    /* Gruppennamen in den Boxen: weiß und fett */
+    /* Gruppennamen in den Boxen: Weiß und Fett */
     .groupBox strong {
       color: #fff;
       font-weight: bold;
+    }
+    button.refreshBtn {
+      padding: 10px 15px;
+      font-size: 1em;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -30,6 +35,11 @@
     <p><strong>Wettkampfname:</strong> <span id="compNameDisplay"></span></p>
     <p><strong>Wettkampf-ID:</strong> <span id="compIdDisplay"></span></p>
     <p>Teile die Wettkampf-ID, damit andere dem Wettkampf beitreten können.</p>
+  </div>
+  
+  <!-- Aktualisieren-Button -->
+  <div class="container">
+    <button class="refreshBtn" id="refreshBtn">Ergebnisse aktualisieren</button>
   </div>
   
   <!-- Container für die Gruppenselektion (Summary-Boxen) -->
@@ -63,7 +73,7 @@
     document.getElementById("compIdDisplay").textContent = compId;
     document.getElementById("compNameDisplay").textContent = compName;
     
-    // Definiere die Gruppen und Zielseiten
+    // Definiere die Gruppen und deren Zielseiten
     const groups = [
       { id: "holz1", name: "Holz 1", target: "scoreboardholz1.html" },
       { id: "holz2", name: "Holz 2", target: "scoreboardholz2.html" },
@@ -73,28 +83,23 @@
     
     const groupBoxesContainer = document.getElementById("groupsContainer");
     
-    // Erstelle für jede Gruppe eine Box, in der der Gruppenname (weiß und fett) und das Ergebnis angezeigt werden
+    // Funktion: Erstelle für jede Gruppe eine Box, die den Gruppen-Namen (weiß & fett) und das aktuelle Ergebnis anzeigt.
     function updateGroupBoxes() {
       // Leere den Container zunächst
       groupBoxesContainer.innerHTML = "<h2>Gruppe auswählen</h2>";
       
       groups.forEach(g => {
-        // Lese die Daten der Gruppe aus Firebase (Pfad: competitions/{compId}/groups/{groupId}/scoreboard/topTeam)
         db.ref('competitions/' + compId + '/groups/' + g.id + '/scoreboard/topTeam').once('value')
           .then(snapshot => {
-            const data = snapshot.val();
-            const result = data && data.schoet ? data.schoet : 0;
-            // Bestimme die Hintergrundfarbe: grün, wenn leadership true, sonst rot; Fallback: grau
-            const bgColor = data && typeof data.leadership === "boolean" ? (data.leadership ? "green" : "red") : "gray";
+            const data = snapshot.val() || {};
+            const result = data.schoet || 0;
+            const bgColor = (typeof data.leadership === "boolean") ? (data.leadership ? "green" : "red") : "gray";
             
-            // Erzeuge die Box
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = bgColor;
-            // Oben wird der Gruppenname (in white und bold – siehe CSS) und darunter "Ergebnis: ..." angezeigt.
             box.innerHTML = `<strong></strong><br>Ergebnis: `;
             box.addEventListener("click", () => {
-              // Weiterleitung zur entsprechenden Scoreboard-Seite mit compId und compName als Parameter
               window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
                                       "&compName=" + encodeURIComponent(compName);
             });
@@ -102,7 +107,6 @@
           })
           .catch(err => {
             console.error("Fehler beim Laden der Daten für " + g.name + ":", err);
-            // Fallback-Box
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = "gray";
@@ -116,7 +120,14 @@
       });
     }
     
+    // Initiales Laden der Gruppenboxen
     updateGroupBoxes();
+    
+    // Aktualisiere automatisch alle 60 Sekunden
+    setInterval(updateGroupBoxes, 60000);
+    
+    // Aktualisieren-Button: Aktualisiert die Gruppenboxen sofort
+    document.getElementById("refreshBtn").addEventListener("click", updateGroupBoxes);
   </script>
 </body>
 </html>
