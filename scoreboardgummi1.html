@@ -23,9 +23,12 @@
     .green {
       background-color: green;
     }
+    .table-container {
+      overflow-x: auto;
+      margin-bottom: 15px;
+    }
     table {
       border-collapse: collapse;
-      margin-bottom: 15px;
       width: 100%;
       max-width: 900px;
     }
@@ -48,10 +51,6 @@
       margin-left: 10px;
       margin-right: 10px;
     }
-    .table-container {
-      overflow-x: auto;
-    }
-    /* Zurück-Button */
     button#backBtn {
       padding: 10px 15px;
       font-size: 1em;
@@ -85,7 +84,7 @@
   &nbsp;Meter: <input type="number" id="topMeterInput" value="0" />
 </div>
 
-<!-- Tabelle mit Runden, Werfern, Checkboxen -->
+<!-- Tabelle für das obere Team -->
 <div class="table-container">
   <table>
     <thead>
@@ -97,7 +96,7 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Oberes Team: Werfer 1-4 + Ersatz 1 -->
+      <!-- Für das obere Team: 5 Zeilen (Werfer 1, Werfer 2, Werfer 3, Werfer 4, Ersatz 1) -->
       <tr>
         <td><input type="text" placeholder="Werfer 1" /></td>
         <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
@@ -166,12 +165,85 @@
   &nbsp;Meter: <input type="number" id="bottomMeterInput" value="0" />
 </div>
 
+<!-- Tabelle für das untere Team -->
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Runden</th>
+        <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
+        <th>6</th><th>7</th><th>8</th><th>9</th><th>10</th>
+        <th>11</th><th>12</th><th>13</th><th>14</th><th>15</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Für das untere Team: 5 Zeilen (Werfer 1, Werfer 2, Werfer 3, Werfer 4, Ersatz 1) -->
+      <tr>
+        <td><input type="text" placeholder="Werfer 1" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td>
+      </tr>
+      <tr>
+        <td><input type="text" placeholder="Werfer 2" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td>
+      </tr>
+      <tr>
+        <td><input type="text" placeholder="Werfer 3" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td>
+      </tr>
+      <tr>
+        <td><input type="text" placeholder="Werfer 4" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td>
+      </tr>
+      <tr>
+        <td><input type="text" placeholder="Ersatz 1" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
+        <td><input type="checkbox" /></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
 <!-- Ergebnis-Anzeige -->
 <div class="score-area">
   <strong>Ergebnis Schoet:</strong> <span id="ergebnisSchoet">0.0</span><br />
   <strong>Ergebnis Meter:</strong> <span id="ergebnisMeter">0</span>
 </div>
 
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
 <script>
@@ -195,7 +267,7 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   
-  // Element-Referenzen (wie im Originalcode)
+  // Element-Referenzen
   const topTeam = document.getElementById("topTeam");
   const bottomTeam = document.getElementById("bottomTeam");
   
@@ -321,21 +393,15 @@
     saveState();
   }
   
-  // Anstatt der Reset-Funktion: Zurück-Button
-  // Entferne den Reset-Button-Code und füge einen "Zurück"-Button hinzu,
-  // der zurück zur Gruppenselektionsseite (scoreboard.html) führt.
-  // Hierzu fügen wir folgenden Code ein:
+  // Ersetze den Reset-Button durch einen Zurück-Button:
   const backBtn = document.createElement("button");
   backBtn.textContent = "Zurück";
   backBtn.style.padding = "10px 15px";
   backBtn.style.fontSize = "1em";
   backBtn.style.cursor = "pointer";
-  // Beim Klick wird zur Gruppenselektionsseite zurückgekehrt. Wir übergeben hier compId und (falls vorhanden) compName.
   backBtn.addEventListener("click", () => {
-    // Optional: Falls compName auch in der URL vorhanden sein soll, kann dies ergänzt werden.
     window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId);
   });
-  // Füge den Button am Ende der Seite hinzu
   document.body.appendChild(backBtn);
 </script>
 </body>
