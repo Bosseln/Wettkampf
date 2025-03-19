@@ -15,7 +15,7 @@
       cursor: pointer;
       text-align: center;
     }
-    /* Gruppenname separat oben – weiß und fett */
+    /* Gruppennamen oben: Weiß und Fett */
     .groupBox .groupName {
       font-weight: bold;
       font-size: 1.2em;
@@ -54,7 +54,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
   <script>
-    // Firebase-Konfiguration – passe diese Werte ggf. an
+    // Firebase-Konfiguration – ggf. anpassen
     const firebaseConfig = {
       apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
       authDomain: "wettkampf-f6f92.firebaseapp.com",
@@ -68,7 +68,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Lese Wettkampfname und Wettkampf-ID aus der URL, z.B. ?compId=ABC123&compName=MeinWettkampf
+    // Lese compId und compName aus der URL (z.B. ?compId=ABC123&compName=MeinWettkampf)
     const params = new URLSearchParams(window.location.search);
     const compId = params.get("compId") || "Keine ID";
     const compName = params.get("compName") || "Kein Name";
@@ -85,23 +85,24 @@
     
     const groupBoxesContainer = document.getElementById("groupsContainer");
     
-    // Erstelle für jede Gruppe eine Box, die den Gruppennamen (oben) und das Ergebnis anzeigt.
+    // Erstelle für jede Gruppe eine Box, die den Gruppennamen oben und den Wert von resultSchoet als "Ergebnis:" anzeigt.
     function updateGroupBoxes() {
-      // Leere den Container zunächst
       groupBoxesContainer.innerHTML = "<h2>Gruppe auswählen</h2>";
       
       groups.forEach(g => {
-        db.ref('competitions/' + compId + '/groups/' + g.id + '/scoreboard/topTeam').once('value')
+        db.ref('competitions/' + compId + '/groups/' + g.id + '/scoreboard').once('value')
           .then(snapshot => {
             const data = snapshot.val() || {};
-            const result = data.schoet || 0;
-            // Hintergrundfarbe anhand der Führung; falls nicht vorhanden, grau
-            const bgColor = (typeof data.leadership === "boolean") ? (data.leadership ? "green" : "red") : "gray";
+            const result = data.resultSchoet || 0;
+            // Bestimme die Hintergrundfarbe anhand der Führung (falls vorhanden)
+            const bgColor = (typeof data.topTeam?.leadership === "boolean")
+              ? (data.topTeam.leadership ? "green" : "red")
+              : "gray";
             
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = bgColor;
-            // Gruppennamen oben, Ergebnis darunter
+            // Oben in der Box wird der Gruppenname in weiß und fett angezeigt, darunter das Ergebnis
             box.innerHTML = `<div class="groupName"></div><div>Ergebnis: </div>`;
             box.addEventListener("click", () => {
               window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
@@ -127,10 +128,10 @@
     // Initiales Laden der Gruppenboxen
     updateGroupBoxes();
     
-    // Aktualisiere automatisch alle 60 Sekunden
+    // Automatische Aktualisierung alle 60 Sekunden
     setInterval(updateGroupBoxes, 60000);
     
-    // Aktualisieren-Button: Aktualisiert die Gruppenboxen sofort
+    // Button zum sofortigen Aktualisieren
     document.getElementById("refreshBtn").addEventListener("click", updateGroupBoxes);
   </script>
 </body>
