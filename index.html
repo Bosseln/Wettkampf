@@ -1,56 +1,26 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <title>Wettkampf erstellen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Optional: Manifest und iOS-Tags für PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-  
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
-  
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
-    .container { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; }
+    .container { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
     input, button { margin: 5px; padding: 5px; }
   </style>
 </head>
 <body>
-  <h1>Wettkampf erstellen / beitreten</h1>
+  <h1>Wettkampf erstellen</h1>
   
-  <div class="container" id="competitionUI">
-    <h2>Wettkampf erstellen</h2>
+  <div class="container">
+    <label for="compName">Wettkampfname:</label>
     <input type="text" id="compName" placeholder="Wettkampfname">
-    <input type="password" id="compPassword" placeholder="Passwort">
     <button id="createCompBtn">Wettkampf erstellen</button>
-    <br><br>
-    <h2>ODER Wettkampf beitreten</h2>
-    <input type="text" id="joinCompId" placeholder="Wettkampf ID">
-    <input type="password" id="joinCompPassword" placeholder="Passwort">
-    <button id="joinCompBtn">Beitreten</button>
-    <div id="compMessage"></div>
   </div>
   
   <script>
-    // Firebase-Konfiguration (ersetze mit deinen Werten)
-    const firebaseConfig = {
-      apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
-      authDomain: "wettkampf-f6f92.firebaseapp.com",
-      databaseURL: "https://wettkampf-f6f92-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "wettkampf-f6f92",
-      storageBucket: "wettkampf-f6f92.firebasestorage.app",
-      messagingSenderId: "161090727748",
-      appId: "1:161090727748:web:33f4ff7ce4f6e5c08f7111",
-      measurementId: "G-WCV2950HGK"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // Hilfsfunktion: Generiere zufällige Wettkampf-ID (6 Zeichen)
+    // Funktion zur Generierung einer zufälligen Wettkampf-ID (6 Zeichen)
     function generateCompId(length) {
       let result = '';
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -59,59 +29,17 @@
       }
       return result;
     }
-
-    // Event-Listener für Wettkampferstellung
+    
     document.getElementById("createCompBtn").addEventListener("click", () => {
-      const name = document.getElementById("compName").value.trim();
-      const pass = document.getElementById("compPassword").value.trim();
-      if (!name || !pass) {
-        alert("Bitte Wettkampfname und Passwort eingeben.");
+      const compName = document.getElementById("compName").value.trim();
+      if (!compName) {
+        alert("Bitte einen Wettkampfname eingeben.");
         return;
       }
       const compId = generateCompId(6);
-      const compData = {
-        name: name,
-        password: pass,  // In Produktion besser absichern!
-        createdAt: Date.now(),
-        // Für dieses Beispiel speichern wir einfach den Namen und das Passwort.
-        // In einer erweiterten Lösung würden hier auch Gruppen (z. B. Holz 1, Holz 2 usw.) angelegt.
-      };
-      db.ref('competitions/' + compId).set(compData)
-        .then(() => {
-          // Nach erfolgreicher Erstellung leiten wir weiter:
-          window.location.href = "scoreboard.html?compId=" + compId;
-        })
-        .catch(err => {
-          console.error("Fehler beim Erstellen des Wettkampfs:", err);
-          document.getElementById("compMessage").innerText = "Fehler beim Erstellen.";
-        });
-    });
-
-    // Event-Listener für Wettkampfbeitritt
-    document.getElementById("joinCompBtn").addEventListener("click", () => {
-      const compId = document.getElementById("joinCompId").value.trim();
-      const pass = document.getElementById("joinCompPassword").value.trim();
-      if (!compId || !pass) {
-        alert("Bitte Wettkampf-ID und Passwort eingeben.");
-        return;
-      }
-      db.ref('competitions/' + compId).get()
-        .then(snapshot => {
-          if (snapshot.exists()) {
-            const data = snapshot.val();
-            if (data.password === pass) {
-              window.location.href = "scoreboard.html?compId=" + compId;
-            } else {
-              document.getElementById("compMessage").innerText = "Falsches Passwort.";
-            }
-          } else {
-            document.getElementById("compMessage").innerText = "Wettkampf nicht gefunden.";
-          }
-        })
-        .catch(err => {
-          console.error("Fehler beim Beitreten:", err);
-          document.getElementById("compMessage").innerText = "Fehler beim Beitreten.";
-        });
+      // Weiterleitung an "scoreboard.html" mit compId und compName als URL-Parameter
+      window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) +
+                               "&compName=" + encodeURIComponent(compName);
     });
   </script>
 </body>
