@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Boßeln Scoreboard</title>
+  <title>Boßeln Scoreboard – Holz 2</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -23,9 +23,12 @@
     .green {
       background-color: green;
     }
+    .table-container {
+      overflow-x: auto;
+      margin-bottom: 15px;
+    }
     table {
       border-collapse: collapse;
-      margin-bottom: 15px;
       width: 100%;
       max-width: 900px;
     }
@@ -48,23 +51,26 @@
       margin-left: 10px;
       margin-right: 10px;
     }
-    .table-container {
-      overflow-x: auto;
+    button#backBtn {
+      padding: 10px 15px;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 20px;
+      display: block;
     }
   </style>
 </head>
 <body>
 
-<h1>Boßeln Scoreboard</h1>
+<h1>Boßeln Scoreboard – Holz 2</h1>
 
-<!-- Geschlechtsauswahl und Reset -->
+<!-- Geschlechtsauswahl -->
 <div>
   <label for="genderSelect">Geschlecht:</label>
   <select id="genderSelect">
     <option value="men">Männer</option>
     <option value="women">Frauen</option>
   </select>
-  <button id="resetBtn">RESET</button>
 </div>
 
 <br>
@@ -78,9 +84,9 @@
   &nbsp;Meter: <input type="number" id="topMeterInput" value="0" />
 </div>
 
-<!-- Tabelle mit Runden, Werfern, Checkboxen -->
+<!-- Tabelle für das obere Team -->
 <div class="table-container">
-  <table>
+  <table id="upperTable">
     <thead>
       <tr>
         <th>Runden</th>
@@ -90,118 +96,96 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Oberes Team: Werfer 1-4 + Ersatz 1 -->
+      <!-- Für das obere Team: 5 Zeilen (Werfer 1, Werfer 2, Werfer 3, Werfer 4, Ersatz 1) -->
       <tr>
-        <td><input type="text" placeholder="Werfer 1" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
+        <td><input type="text" id="holz2_top_name0" placeholder="Werfer 1" /></td>
+        <td><input type="checkbox" id="holz2_top_cb0_1" /></td>
+        <td><input type="checkbox" id="holz2_top_cb0_2" /></td>
+        <td><input type="checkbox" id="holz2_top_cb0_3" /></td>
+        <td><input type="checkbox" id="holz2_top_cb0_4" /></td>
+        <td><input type="checkbox" id="holz2_top_cb0_5" /></td>
+        <td><input type="checkbox" id="holz2_top_cb0_6" /></td>
+        <td><input type="checkbox" id="holz2_top_cb0_7" /></td>
+        <td><input type="checkbox" id="holz2_top_cb0_8" /></td>
+        <td><input type="checkbox" id="holz2_top_cb0_9" /></td>
+        <td><input type="checkbox" id="holz2_top_cb0_10" /></td>
+        <td><input type="checkbox" id="holz2_top_cb0_11" /></td>
+        <td><input type="checkbox" id="holz2_top_cb0_12" /></td>
+        <td><input type="checkbox" id="holz2_top_cb0_13" /></td>
+        <td><input type="checkbox" id="holz2_top_cb0_14" /></td>
+        <td><input type="checkbox" id="holz2_top_cb0_15" /></td>
       </tr>
       <tr>
-        <td><input type="text" placeholder="Werfer 2" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
+        <td><input type="text" id="holz2_top_name1" placeholder="Werfer 2" /></td>
+        <td><input type="checkbox" id="holz2_top_cb1_1" /></td>
+        <td><input type="checkbox" id="holz2_top_cb1_2" /></td>
+        <td><input type="checkbox" id="holz2_top_cb1_3" /></td>
+        <td><input type="checkbox" id="holz2_top_cb1_4" /></td>
+        <td><input type="checkbox" id="holz2_top_cb1_5" /></td>
+        <td><input type="checkbox" id="holz2_top_cb1_6" /></td>
+        <td><input type="checkbox" id="holz2_top_cb1_7" /></td>
+        <td><input type="checkbox" id="holz2_top_cb1_8" /></td>
+        <td><input type="checkbox" id="holz2_top_cb1_9" /></td>
+        <td><input type="checkbox" id="holz2_top_cb1_10" /></td>
+        <td><input type="checkbox" id="holz2_top_cb1_11" /></td>
+        <td><input type="checkbox" id="holz2_top_cb1_12" /></td>
+        <td><input type="checkbox" id="holz2_top_cb1_13" /></td>
+        <td><input type="checkbox" id="holz2_top_cb1_14" /></td>
+        <td><input type="checkbox" id="holz2_top_cb1_15" /></td>
       </tr>
       <tr>
-        <td><input type="text" placeholder="Werfer 3" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
+        <td><input type="text" id="holz2_top_name2" placeholder="Werfer 3" /></td>
+        <td><input type="checkbox" id="holz2_top_cb2_1" /></td>
+        <td><input type="checkbox" id="holz2_top_cb2_2" /></td>
+        <td><input type="checkbox" id="holz2_top_cb2_3" /></td>
+        <td><input type="checkbox" id="holz2_top_cb2_4" /></td>
+        <td><input type="checkbox" id="holz2_top_cb2_5" /></td>
+        <td><input type="checkbox" id="holz2_top_cb2_6" /></td>
+        <td><input type="checkbox" id="holz2_top_cb2_7" /></td>
+        <td><input type="checkbox" id="holz2_top_cb2_8" /></td>
+        <td><input type="checkbox" id="holz2_top_cb2_9" /></td>
+        <td><input type="checkbox" id="holz2_top_cb2_10" /></td>
+        <td><input type="checkbox" id="holz2_top_cb2_11" /></td>
+        <td><input type="checkbox" id="holz2_top_cb2_12" /></td>
+        <td><input type="checkbox" id="holz2_top_cb2_13" /></td>
+        <td><input type="checkbox" id="holz2_top_cb2_14" /></td>
+        <td><input type="checkbox" id="holz2_top_cb2_15" /></td>
       </tr>
       <tr>
-        <td><input type="text" placeholder="Werfer 4" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
+        <td><input type="text" id="holz2_top_name3" placeholder="Werfer 4" /></td>
+        <td><input type="checkbox" id="holz2_top_cb3_1" /></td>
+        <td><input type="checkbox" id="holz2_top_cb3_2" /></td>
+        <td><input type="checkbox" id="holz2_top_cb3_3" /></td>
+        <td><input type="checkbox" id="holz2_top_cb3_4" /></td>
+        <td><input type="checkbox" id="holz2_top_cb3_5" /></td>
+        <td><input type="checkbox" id="holz2_top_cb3_6" /></td>
+        <td><input type="checkbox" id="holz2_top_cb3_7" /></td>
+        <td><input type="checkbox" id="holz2_top_cb3_8" /></td>
+        <td><input type="checkbox" id="holz2_top_cb3_9" /></td>
+        <td><input type="checkbox" id="holz2_top_cb3_10" /></td>
+        <td><input type="checkbox" id="holz2_top_cb3_11" /></td>
+        <td><input type="checkbox" id="holz2_top_cb3_12" /></td>
+        <td><input type="checkbox" id="holz2_top_cb3_13" /></td>
+        <td><input type="checkbox" id="holz2_top_cb3_14" /></td>
+        <td><input type="checkbox" id="holz2_top_cb3_15" /></td>
       </tr>
       <tr>
-        <td><input type="text" placeholder="Ersatz 1" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
-      </tr>
-
-      <!-- Unteres Team: Werfer 1-4 + Ersatz 1 -->
-      <tr>
-        <td><input type="text" placeholder="Werfer 1" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
-      </tr>
-      <tr>
-        <td><input type="text" placeholder="Werfer 2" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
-      </tr>
-      <tr>
-        <td><input type="text" placeholder="Werfer 3" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
-      </tr>
-      <tr>
-        <td><input type="text" placeholder="Werfer 4" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
-      </tr>
-      <tr>
-        <td><input type="text" placeholder="Ersatz 1" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
+        <td><input type="text" id="holz2_top_name4" placeholder="Ersatz 1" /></td>
+        <td><input type="checkbox" id="holz2_top_cb4_1" /></td>
+        <td><input type="checkbox" id="holz2_top_cb4_2" /></td>
+        <td><input type="checkbox" id="holz2_top_cb4_3" /></td>
+        <td><input type="checkbox" id="holz2_top_cb4_4" /></td>
+        <td><input type="checkbox" id="holz2_top_cb4_5" /></td>
+        <td><input type="checkbox" id="holz2_top_cb4_6" /></td>
+        <td><input type="checkbox" id="holz2_top_cb4_7" /></td>
+        <td><input type="checkbox" id="holz2_top_cb4_8" /></td>
+        <td><input type="checkbox" id="holz2_top_cb4_9" /></td>
+        <td><input type="checkbox" id="holz2_top_cb4_10" /></td>
+        <td><input type="checkbox" id="holz2_top_cb4_11" /></td>
+        <td><input type="checkbox" id="holz2_top_cb4_12" /></td>
+        <td><input type="checkbox" id="holz2_top_cb4_13" /></td>
+        <td><input type="checkbox" id="holz2_top_cb4_14" /></td>
+        <td><input type="checkbox" id="holz2_top_cb4_15" /></td>
       </tr>
     </tbody>
   </table>
@@ -216,40 +200,283 @@
   &nbsp;Meter: <input type="number" id="bottomMeterInput" value="0" />
 </div>
 
+<!-- Tabelle für das untere Team -->
+<div class="table-container">
+  <table id="lowerTable">
+    <thead>
+      <tr>
+        <th>Runden</th>
+        <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
+        <th>6</th><th>7</th><th>8</th><th>9</th><th>10</th>
+        <th>11</th><th>12</th><th>13</th><th>14</th><th>15</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Für das untere Team: 5 Zeilen -->
+      <tr>
+        <td><input type="text" id="holz2_bottom_name0" placeholder="Werfer 1" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb0_1" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb0_2" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb0_3" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb0_4" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb0_5" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb0_6" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb0_7" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb0_8" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb0_9" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb0_10" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb0_11" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb0_12" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb0_13" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb0_14" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb0_15" /></td>
+      </tr>
+      <tr>
+        <td><input type="text" id="holz2_bottom_name1" placeholder="Werfer 2" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb1_1" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb1_2" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb1_3" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb1_4" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb1_5" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb1_6" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb1_7" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb1_8" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb1_9" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb1_10" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb1_11" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb1_12" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb1_13" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb1_14" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb1_15" /></td>
+      </tr>
+      <tr>
+        <td><input type="text" id="holz2_bottom_name2" placeholder="Werfer 3" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb2_1" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb2_2" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb2_3" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb2_4" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb2_5" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb2_6" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb2_7" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb2_8" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb2_9" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb2_10" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb2_11" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb2_12" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb2_13" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb2_14" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb2_15" /></td>
+      </tr>
+      <tr>
+        <td><input type="text" id="holz2_bottom_name3" placeholder="Werfer 4" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb3_1" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb3_2" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb3_3" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb3_4" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb3_5" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb3_6" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb3_7" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb3_8" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb3_9" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb3_10" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb3_11" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb3_12" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb3_13" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb3_14" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb3_15" /></td>
+      </tr>
+      <tr>
+        <td><input type="text" id="holz2_bottom_name4" placeholder="Ersatz 1" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb4_1" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb4_2" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb4_3" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb4_4" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb4_5" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb4_6" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb4_7" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb4_8" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb4_9" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb4_10" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb4_11" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb4_12" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb4_13" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb4_14" /></td>
+        <td><input type="checkbox" id="holz2_bottom_cb4_15" /></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
 <!-- Ergebnis-Anzeige -->
 <div class="score-area">
   <strong>Ergebnis Schoet:</strong> <span id="ergebnisSchoet">0.0</span><br />
   <strong>Ergebnis Meter:</strong> <span id="ergebnisMeter">0</span>
 </div>
 
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
 <script>
+  // Lese die Wettkampfdaten aus dem URL-Parameter (compId) – für diese Datei gilt die Gruppe "holz2"
+  const params = new URLSearchParams(window.location.search);
+  const compId = params.get("compId") || "Keine ID";
+  // Für diese Datei ist die Gruppen-ID fest: holz2
+  const groupId = "holz2";
+  
+  // Firebase-Konfiguration – passe diese Werte ggf. an
+  const firebaseConfig = {
+    apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
+    authDomain: "wettkampf-f6f92.firebaseapp.com",
+    databaseURL: "https://wettkampf-f6f92-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "wettkampf-f6f92",
+    storageBucket: "wettkampf-f6f92.firebasestorage.app",
+    messagingSenderId: "161090727748",
+    appId: "1:161090727748:web:33f4ff7ce4f6e5c08f7111",
+    measurementId: "G-WCV2950HGK"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  
   // Element-Referenzen
   const topTeam = document.getElementById("topTeam");
   const bottomTeam = document.getElementById("bottomTeam");
-
+  
   const topTeamToggleBtn = document.getElementById("topTeamToggleBtn");
   const bottomTeamToggleBtn = document.getElementById("bottomTeamToggleBtn");
-
+  
   const topSchoetBtn = document.getElementById("topSchoetBtn");
   const bottomSchoetBtn = document.getElementById("bottomSchoetBtn");
-
+  
   const topSchoetDisplay = document.getElementById("topSchoetDisplay");
   const bottomSchoetDisplay = document.getElementById("bottomSchoetDisplay");
-
+  
   const topMeterInput = document.getElementById("topMeterInput");
   const bottomMeterInput = document.getElementById("bottomMeterInput");
-
+  
   const ergebnisSchoet = document.getElementById("ergebnisSchoet");
   const ergebnisMeter = document.getElementById("ergebnisMeter");
-
+  
   const genderSelect = document.getElementById("genderSelect");
   const resetBtn = document.getElementById("resetBtn");
-
-  // Globale Variablen für Schoet
+  
+  // Globale Variablen
   let topSchoet = 0;
   let bottomSchoet = 0;
-
-  // Farb-Umschaltung ("Führung")
+  
+  // Funktion zum Speichern des Zustands in Firebase (inkl. Tabellen und Ergebnis-Anzeige)
+  function saveState() {
+    const state = {
+      topTeam: {
+        verein: document.getElementById("topVerein").value,
+        schoet: Number(topSchoetDisplay.textContent),
+        meter: Number(topMeterInput.value),
+        leadership: topTeam.classList.contains("green")
+      },
+      bottomTeam: {
+        verein: document.getElementById("bottomVerein").value,
+        schoet: Number(bottomSchoetDisplay.textContent),
+        meter: Number(bottomMeterInput.value),
+        leadership: bottomTeam.classList.contains("green")
+      },
+      resultSchoet: ergebnisSchoet.textContent,
+      resultMeter: ergebnisMeter.textContent,
+      gender: genderSelect.value,
+      upperTable: saveTable("upperTable"),
+      lowerTable: saveTable("lowerTable")
+    };
+    db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').set(state);
+  }
+  
+  function saveTable(tableId) {
+    const table = document.getElementById(tableId);
+    let data = [];
+    const rows = table.tBodies[0].rows;
+    for (let i = 0; i < rows.length; i++) {
+      let rowData = [];
+      let row = rows[i];
+      for (let j = 0; j < row.cells.length; j++) {
+        let input = row.cells[j].querySelector("input");
+        if (input) {
+          if (input.type === "checkbox") {
+            rowData.push(input.checked);
+          } else {
+            rowData.push(input.value);
+          }
+        } else {
+          rowData.push(null);
+        }
+      }
+      data.push(rowData);
+    }
+    return data;
+  }
+  
+  // Funktion zum Laden des Zustands aus Firebase
+  function loadState() {
+    db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').once('value')
+      .then(snapshot => {
+        const state = snapshot.val();
+        if (state) {
+          document.getElementById("topVerein").value = state.topTeam.verein || "";
+          topSchoet = state.topTeam.schoet || 0;
+          topSchoetDisplay.textContent = topSchoet;
+          topMeterInput.value = state.topTeam.meter || 0;
+          if (state.topTeam.leadership) {
+            topTeam.classList.add("green");
+            topTeam.classList.remove("red");
+          } else {
+            topTeam.classList.add("red");
+            topTeam.classList.remove("green");
+          }
+          
+          document.getElementById("bottomVerein").value = state.bottomTeam.verein || "";
+          bottomSchoet = state.bottomTeam.schoet || 0;
+          bottomSchoetDisplay.textContent = bottomSchoet;
+          bottomMeterInput.value = state.bottomTeam.meter || 0;
+          if (state.bottomTeam.leadership) {
+            bottomTeam.classList.add("green");
+            bottomTeam.classList.remove("red");
+          } else {
+            bottomTeam.classList.add("red");
+            bottomTeam.classList.remove("green");
+          }
+          
+          if (state.gender) {
+            genderSelect.value = state.gender;
+          }
+          
+          if (state.upperTable) loadTable("upperTable", state.upperTable);
+          if (state.lowerTable) loadTable("lowerTable", state.lowerTable);
+          ergebnisSchoet.textContent = state.resultSchoet || "0.0";
+          ergebnisMeter.textContent = state.resultMeter || "0";
+          calculateResult();
+        }
+      })
+      .catch(err => {
+        console.error("Fehler beim Laden des Zustands:", err);
+      });
+  }
+  
+  function loadTable(tableId, data) {
+    const table = document.getElementById(tableId);
+    const rows = table.tBodies[0].rows;
+    if (!data) return;
+    for (let i = 0; i < rows.length && i < data.length; i++) {
+      let row = rows[i];
+      for (let j = 0; j < row.cells.length && j < data[i].length; j++) {
+        let input = row.cells[j].querySelector("input");
+        if (input) {
+          if (input.type === "checkbox") {
+            input.checked = data[i][j];
+          } else {
+            input.value = data[i][j];
+          }
+        }
+      }
+    }
+  }
+  
+  // Event-Listener für die Team-Bereiche
   topTeamToggleBtn.addEventListener("click", () => {
     if (topTeam.classList.contains("red")) {
       topTeam.classList.remove("red");
@@ -267,7 +494,7 @@
     }
     calculateResult();
   });
-
+  
   bottomTeamToggleBtn.addEventListener("click", () => {
     if (bottomTeam.classList.contains("green")) {
       bottomTeam.classList.remove("green");
@@ -285,34 +512,44 @@
     }
     calculateResult();
   });
-
-  // Schoet-Knöpfe
+  
   topSchoetBtn.addEventListener("click", () => {
     topSchoet++;
     topSchoetDisplay.textContent = topSchoet;
     calculateResult();
   });
-
+  
   bottomSchoetBtn.addEventListener("click", () => {
     bottomSchoet++;
     bottomSchoetDisplay.textContent = bottomSchoet;
     calculateResult();
   });
-
-  // Meter-Eingaben
+  
   topMeterInput.addEventListener("input", calculateResult);
   bottomMeterInput.addEventListener("input", calculateResult);
-
-  // Ergebnis-Berechnung
+  
+  // Fügt Event-Listener zu allen Input-Feldern in den Tabellen hinzu, sodass Änderungen sofort gespeichert werden
+  function addTableInputListeners() {
+    const upperInputs = document.querySelectorAll("#upperTable input");
+    upperInputs.forEach(input => {
+      input.addEventListener("change", calculateResult);
+    });
+    const lowerInputs = document.querySelectorAll("#lowerTable input");
+    lowerInputs.forEach(input => {
+      input.addEventListener("change", calculateResult);
+    });
+  }
+  addTableInputListeners();
+  
   function calculateResult() {
     let meterDiff = parseInt(topMeterInput.value) - parseInt(bottomMeterInput.value);
     let schoeetDiff = topSchoet - bottomSchoet;
     let gender = genderSelect.value;
     let threshold = (gender === "men") ? 150 : 100;
-
+  
     let absMeterDiff = Math.abs(meterDiff);
     let extraSchoet = Math.floor(absMeterDiff / threshold);
-
+  
     if (meterDiff > 0) {
       schoeetDiff += extraSchoet;
       meterDiff = meterDiff % threshold;
@@ -322,46 +559,31 @@
       meterDiff = -leftover;
     }
     
-    // Zusätzliche Anpassung:
-    // - Wenn der untere Bereich grün ist und das Ergebnis positiv, -0,5 abziehen.
-    // - Wenn der obere Bereich grün ist und das Ergebnis negativ, +0,5 addieren.
     if (bottomTeam.classList.contains("green") && schoeetDiff > 0) {
       schoeetDiff -= 0.5;
     } else if (topTeam.classList.contains("green") && schoeetDiff < 0) {
       schoeetDiff += 0.5;
     }
     
-    // Ergebnisse formatieren:
-    // - Schoet-Ergebnis mit 1 Kommastelle.
-    // - Meter-Ergebnis als ganze Zahl.
     ergebnisSchoet.textContent = schoeetDiff.toFixed(1);
     ergebnisMeter.textContent = meterDiff.toFixed(0);
+    saveState();
   }
-
-  // Reset-Funktion
-  resetBtn.addEventListener("click", () => {
-    document.querySelectorAll('tbody input[type="text"]').forEach(input => {
-      input.value = "";
-    });
-    document.querySelectorAll('tbody input[type="checkbox"]').forEach(checkbox => {
-      checkbox.checked = false;
-    });
-    topSchoet = 0;
-    bottomSchoet = 0;
-    topSchoetDisplay.textContent = 0;
-    bottomSchoetDisplay.textContent = 0;
-    topMeterInput.value = 0;
-    bottomMeterInput.value = 0;
-    document.getElementById("topVerein").value = "";
-    document.getElementById("bottomVerein").value = "";
-    ergebnisSchoet.textContent = "0.0";
-    ergebnisMeter.textContent = "0";
-    genderSelect.value = "men";
-    topTeam.classList.remove("green");
-    topTeam.classList.add("red");
-    bottomTeam.classList.remove("red");
-    bottomTeam.classList.add("green");
+  
+  // Lade den gespeicherten Zustand beim Laden der Seite
+  loadState();
+  
+  // Füge einen "Zurück"-Button hinzu, der beim Klicken den Zustand speichert und zur Gruppenselektionsseite zurückführt
+  const backBtn = document.createElement("button");
+  backBtn.textContent = "Zurück";
+  backBtn.style.padding = "10px 15px";
+  backBtn.style.fontSize = "1em";
+  backBtn.style.cursor = "pointer";
+  backBtn.addEventListener("click", () => {
+    saveState();
+    window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId);
   });
+  document.body.appendChild(backBtn);
 </script>
 </body>
 </html>
