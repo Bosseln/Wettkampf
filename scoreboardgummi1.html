@@ -51,20 +51,27 @@
     .table-container {
       overflow-x: auto;
     }
+    /* Zurück-Button */
+    button#backBtn {
+      padding: 10px 15px;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
 
 <h1>Boßeln Scoreboard – Gummi 1</h1>
 
-<!-- Geschlechtsauswahl und Reset -->
+<!-- Geschlechtsauswahl und Zurück-Button -->
 <div>
   <label for="genderSelect">Geschlecht:</label>
   <select id="genderSelect">
     <option value="men">Männer</option>
     <option value="women">Frauen</option>
   </select>
-  <button id="resetBtn">RESET</button>
+  <button id="backBtn">Zurück</button>
 </div>
 
 <br>
@@ -314,30 +321,22 @@
     saveState();
   }
   
-  resetBtn.addEventListener("click", () => {
-    document.querySelectorAll('tbody input[type="text"]').forEach(input => {
-      input.value = "";
-    });
-    document.querySelectorAll('tbody input[type="checkbox"]').forEach(checkbox => {
-      checkbox.checked = false;
-    });
-    topSchoet = 0;
-    bottomSchoet = 0;
-    topSchoetDisplay.textContent = 0;
-    bottomSchoetDisplay.textContent = 0;
-    topMeterInput.value = 0;
-    bottomMeterInput.value = 0;
-    document.getElementById("topVerein").value = "";
-    document.getElementById("bottomVerein").value = "";
-    ergebnisSchoet.textContent = "0.0";
-    ergebnisMeter.textContent = "0";
-    genderSelect.value = "men";
-    topTeam.classList.remove("green");
-    topTeam.classList.add("red");
-    bottomTeam.classList.remove("red");
-    bottomTeam.classList.add("green");
-    saveState();
+  // Anstatt der Reset-Funktion: Zurück-Button
+  // Entferne den Reset-Button-Code und füge einen "Zurück"-Button hinzu,
+  // der zurück zur Gruppenselektionsseite (scoreboard.html) führt.
+  // Hierzu fügen wir folgenden Code ein:
+  const backBtn = document.createElement("button");
+  backBtn.textContent = "Zurück";
+  backBtn.style.padding = "10px 15px";
+  backBtn.style.fontSize = "1em";
+  backBtn.style.cursor = "pointer";
+  // Beim Klick wird zur Gruppenselektionsseite zurückgekehrt. Wir übergeben hier compId und (falls vorhanden) compName.
+  backBtn.addEventListener("click", () => {
+    // Optional: Falls compName auch in der URL vorhanden sein soll, kann dies ergänzt werden.
+    window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId);
   });
+  // Füge den Button am Ende der Seite hinzu
+  document.body.appendChild(backBtn);
 </script>
 </body>
 </html>
