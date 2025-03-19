@@ -51,13 +51,20 @@
       margin-left: 10px;
       margin-right: 10px;
     }
+    button#backBtn {
+      padding: 10px 15px;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 20px;
+      display: block;
+    }
   </style>
 </head>
 <body>
 
 <h1>Boßeln Scoreboard – Gummi 1</h1>
 
-<!-- Geschlechtsauswahl (kein Zurück-Button mehr) -->
+<!-- Geschlechtsauswahl (kein Reset, stattdessen wird alles gespeichert) -->
 <div>
   <label for="genderSelect">Geschlecht:</label>
   <select id="genderSelect">
@@ -77,7 +84,7 @@
   &nbsp;Meter: <input type="number" id="topMeterInput" value="0" />
 </div>
 
-<!-- Tabelle für das obere Team (mit fester ID "upperTable") -->
+<!-- Tabelle für das obere Team -->
 <div class="table-container">
   <table id="upperTable">
     <thead>
@@ -89,7 +96,7 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Für das obere Team: 5 Zeilen -->
+      <!-- Für das obere Team: 5 Zeilen (Werfer 1, Werfer 2, Werfer 3, Werfer 4, Ersatz 1) -->
       <tr>
         <td><input type="text" id="gummi1_top_name0" placeholder="Werfer 1" /></td>
         <td><input type="checkbox" id="gummi1_top_cb0_1" /></td>
@@ -371,7 +378,6 @@
         meter: Number(bottomMeterInput.value),
         leadership: bottomTeam.classList.contains("green")
       },
-      // Tabelle speichern: obere und untere Tabelle
       upperTable: saveTable("upperTable"),
       lowerTable: saveTable("lowerTable")
     };
@@ -542,6 +548,18 @@
   
   // Lade den gespeicherten Zustand beim Laden der Seite
   loadState();
+  
+  // Füge einen "Zurück"-Button hinzu, der vor dem Navigieren den Zustand speichert
+  const backBtn = document.createElement("button");
+  backBtn.textContent = "Zurück";
+  backBtn.style.padding = "10px 15px";
+  backBtn.style.fontSize = "1em";
+  backBtn.style.cursor = "pointer";
+  backBtn.addEventListener("click", () => {
+    saveState(); // Zustand komplett speichern
+    window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId);
+  });
+  document.body.appendChild(backBtn);
 </script>
 </body>
 </html>
