@@ -50,7 +50,7 @@
     </select>
   </div>
   
-  <!-- Container für die detaillierte Scoreboard-Oberfläche -->
+  <!-- Container für die detaillierte Original-Oberfläche -->
   <div class="container" id="scoreboardContainer"></div>
   
   <!-- Zusammenfassung aller Gruppen -->
@@ -87,196 +87,167 @@
       { id: "gummi1", name: "Gummi 1" },
       { id: "gummi2", name: "Gummi 2" }
     ];
-    let groupStates = {}; // Hier werden die Zustände aller Gruppen live gespeichert
+    let groupStates = {}; // Speichert die Zustände aller Gruppen
     let selectedGroup = "holz1"; // Standardmäßig "Holz 1"
     
     /******** DOM-Elemente ********/
     const groupSelect = document.getElementById("groupSelect");
-    const scoreboardContainer = document.getElementById("scoreboardContainer");
+    // Wir verwenden "scoreboardContainer" als unseren Container für die detaillierte Ansicht
+    const detailedContainer = document.getElementById("scoreboardContainer");
     const summaryContainer = document.getElementById("summaryContainer");
     
     groupSelect.value = selectedGroup;
     groupSelect.addEventListener("change", (e) => {
       selectedGroup = e.target.value;
-      renderScoreboard(selectedGroup);
+      renderDetailedView(selectedGroup);
     });
     
-    /******** Originale Scoreboard-Oberfläche (genau wie von dir gesendet) ********/
-    // Diese Funktion gibt den HTML-Code der Originaloberfläche zurück,
-    // wobei alle Element-IDs mit dem Präfix (groupId + "_") versehen werden.
-    function getScoreboardHTML(groupId) {
+    /******** Originale Oberfläche – Funktionen ********/
+    // Gibt den HTML-Code für eine vollständige Tabelle (5 Zeilen, 15 Spalten) zurück
+    function getFullTableHTML(prefix) {
+      const rows = ["Werfer 1", "Werfer 2", "Werfer 3", "Werfer 4", "Ersatz 1"];
+      let html = "<table><thead><tr><th>Werfer</th>";
+      for (let i = 1; i <= 15; i++) {
+        html += `<th></th>`;
+      }
+      html += "</tr></thead><tbody>";
+      for (let r = 0; r < rows.length; r++) {
+        html += "<tr>";
+        html += `<td><input type="text" id="_name" placeholder=""></td>`;
+        for (let c = 1; c <= 15; c++) {
+          html += `<td><input type="checkbox" id="_cb_"></td>`;
+        }
+        html += "</tr>";
+      }
+      html += "</tbody></table>";
+      return html;
+    }
+    
+    // Gibt den HTML-Code der detaillierten Ansicht (Originaloberfläche) für eine Gruppe zurück
+    function getDetailedHTML(groupId, groupName) {
       return `
-      <!-- Oberes Team (Führung) -->
-      <div id="_topTeam" class="team-header red">
-        <button id="_topTeamToggleBtn">Führung</button>
-        <input type="text" id="_topVerein" placeholder="Verein eintragen..." />
-        <button id="_topSchoetBtn">Schöööööt!</button>
-        &nbsp;Schoet: <span id="_topSchoetDisplay">0</span>
-        &nbsp;Meter: <input type="number" id="_topMeterInput" value="0" />
-      </div>
-      
-      <!-- Tabelle mit Runden, Werfern, Checkboxen -->
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Runden</th>
-              <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th>
-              <th>6</th><th>7</th><th>8</th><th>9</th><th>10</th>
-              <th>11</th><th>12</th><th>13</th><th>14</th><th>15</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Oberes Team: 5 Zeilen (Werfer 1-4 und Ersatz 1) -->
-            <tr>
-              <td><input type="text" id="_topWerfer1" placeholder="Werfer 1" /></td>
-              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_top_cb1_"></td>`).join('')}
-            </tr>
-            <tr>
-              <td><input type="text" id="_topWerfer2" placeholder="Werfer 2" /></td>
-              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_top_cb2_"></td>`).join('')}
-            </tr>
-            <tr>
-              <td><input type="text" id="_topWerfer3" placeholder="Werfer 3" /></td>
-              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_top_cb3_"></td>`).join('')}
-            </tr>
-            <tr>
-              <td><input type="text" id="_topWerfer4" placeholder="Werfer 4" /></td>
-              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_top_cb4_"></td>`).join('')}
-            </tr>
-            <tr>
-              <td><input type="text" id="_topErsatz1" placeholder="Ersatz 1" /></td>
-              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_top_cb5_"></td>`).join('')}
-            </tr>
-            <!-- Unteres Team: 5 Zeilen (Werfer 1-4 und Ersatz 1) -->
-            <tr>
-              <td><input type="text" id="_bottomWerfer1" placeholder="Werfer 1" /></td>
-              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_bottom_cb1_"></td>`).join('')}
-            </tr>
-            <tr>
-              <td><input type="text" id="_bottomWerfer2" placeholder="Werfer 2" /></td>
-              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_bottom_cb2_"></td>`).join('')}
-            </tr>
-            <tr>
-              <td><input type="text" id="_bottomWerfer3" placeholder="Werfer 3" /></td>
-              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_bottom_cb3_"></td>`).join('')}
-            </tr>
-            <tr>
-              <td><input type="text" id="_bottomWerfer4" placeholder="Werfer 4" /></td>
-              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_bottom_cb4_"></td>`).join('')}
-            </tr>
-            <tr>
-              <td><input type="text" id="_bottomErsatz1" placeholder="Ersatz 1" /></td>
-              ${[...Array(15)].map((_,i) => `<td><input type="checkbox" id="_bottom_cb5_"></td>`).join('')}
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <!-- Unteres Team (Führung) -->
-      <div id="_bottomTeam" class="team-header green">
-        <button id="_bottomTeamToggleBtn">Führung</button>
-        <input type="text" id="_bottomVerein" placeholder="Verein eintragen..." />
-        <button id="_bottomSchoetBtn">Schöööööt!</button>
-        &nbsp;Schoet: <span id="_bottomSchoetDisplay">0</span>
-        &nbsp;Meter: <input type="number" id="_bottomMeterInput" value="0" />
-      </div>
-      
-      <!-- Ergebnis-Anzeige -->
-      <div class="score-area">
-        <strong>Ergebnis Schoet:</strong> <span id="_ergebnisSchoet">0.0</span><br />
-        <strong>Ergebnis Meter:</strong> <span id="_ergebnisMeter">0</span>
-      </div>
+        <h2> – Detaillierte Ansicht</h2>
+        <!-- Oberes Team (Führung) -->
+        <div id="_topTeam" class="team-header red">
+          <button class="toggleBtn" id="_topTeamToggleBtn">Führung</button>
+          <input type="text" id="_topVerein" placeholder="Verein eintragen..." />
+          <button id="_topSchoetBtn">Schöööööt!</button>
+          &nbsp;Schoet: <span id="_topSchoetDisplay">0</span>
+          &nbsp;Meter: <input type="number" id="_topMeterInput" value="0" />
+        </div>
+        <div class="table-container">
+          
+        </div>
+        <!-- Unteres Team (Führung) -->
+        <div id="_bottomTeam" class="team-header green">
+          <button class="toggleBtn" id="_bottomTeamToggleBtn">Führung</button>
+          <input type="text" id="_bottomVerein" placeholder="Verein eintragen..." />
+          <button id="_bottomSchoetBtn">Schöööööt!</button>
+          &nbsp;Schoet: <span id="_bottomSchoetDisplay">0</span>
+          &nbsp;Meter: <input type="number" id="_bottomMeterInput" value="0" />
+        </div>
+        <div class="table-container">
+          
+        </div>
+        <!-- Ergebnis-Anzeige -->
+        <div class="score-area">
+          <strong>Ergebnis Schoet:</strong> <span id="_ergebnisSchoet">0.0</span><br />
+          <strong>Ergebnis Meter:</strong> <span id="_ergebnisMeter">0</span>
+        </div>
       `;
     }
     
-    /******** Event-Listener & Funktionen der Original-Oberfläche ********/
-    // Hier nutzen wir weitgehend den Original-Code (wie von dir gesendet) – die IDs werden dabei mit dem Gruppen-Prefix ergänzt.
-    function setupScoreboardListeners(groupId) {
-      const topTeam = document.getElementById(`_topTeam`);
-      const bottomTeam = document.getElementById(`_bottomTeam`);
+    // Rendert die detaillierte Ansicht in unserem Container
+    function renderDetailedView(groupId) {
+      const groupName = groups.find(g => g.id === groupId).name;
+      detailedContainer.innerHTML = getDetailedHTML(groupId, groupName);
+      setupListeners(groupId);
+      if (groupStates[groupId]) {
+        updateDetailedUI(groupId, groupStates[groupId]);
+      }
+    }
     
+    /******** Event-Listener und UI-Aktualisierung der Original-Oberfläche ********/
+    function setupListeners(groupId) {
+      // OBEN
       const topTeamToggleBtn = document.getElementById(`_topTeamToggleBtn`);
-      const bottomTeamToggleBtn = document.getElementById(`_bottomTeamToggleBtn`);
-    
+      const topVerein = document.getElementById(`_topVerein`);
       const topSchoetBtn = document.getElementById(`_topSchoetBtn`);
-      const bottomSchoetBtn = document.getElementById(`_bottomSchoetBtn`);
-    
       const topSchoetDisplay = document.getElementById(`_topSchoetDisplay`);
-      const bottomSchoetDisplay = document.getElementById(`_bottomSchoetDisplay`);
-    
       const topMeterInput = document.getElementById(`_topMeterInput`);
+      
+      // UNTEN
+      const bottomTeamToggleBtn = document.getElementById(`_bottomTeamToggleBtn`);
+      const bottomVerein = document.getElementById(`_bottomVerein`);
+      const bottomSchoetBtn = document.getElementById(`_bottomSchoetBtn`);
+      const bottomSchoetDisplay = document.getElementById(`_bottomSchoetDisplay`);
       const bottomMeterInput = document.getElementById(`_bottomMeterInput`);
-    
-      const ergebnisSchoet = document.getElementById(`_ergebnisSchoet`);
-      const ergebnisMeter = document.getElementById(`_ergebnisMeter`);
-    
-      const genderSelect = document.getElementById("genderSelect");
-      const resetBtn = document.getElementById("resetBtn");
-    
+      
+      // Für diese vereinfachte Version verwenden wir die grundlegenden Funktionen:
       let topSchoet = 0;
       let bottomSchoet = 0;
-    
+      
       topTeamToggleBtn.addEventListener("click", () => {
-        if (topTeam.classList.contains("red")) {
-          topTeam.classList.remove("red");
-          topTeam.classList.add("green");
+        // Umschalten der Farben
+        if (document.getElementById(`_topTeam`).classList.contains("red")) {
+          document.getElementById(`_topTeam`).classList.remove("red");
+          document.getElementById(`_topTeam`).classList.add("green");
         } else {
-          topTeam.classList.remove("green");
-          topTeam.classList.add("red");
+          document.getElementById(`_topTeam`).classList.remove("green");
+          document.getElementById(`_topTeam`).classList.add("red");
         }
-        if (bottomTeam.classList.contains("green")) {
-          bottomTeam.classList.remove("green");
-          bottomTeam.classList.add("red");
+        if (document.getElementById(`_bottomTeam`).classList.contains("green")) {
+          document.getElementById(`_bottomTeam`).classList.remove("green");
+          document.getElementById(`_bottomTeam`).classList.add("red");
         } else {
-          bottomTeam.classList.remove("red");
-          bottomTeam.classList.add("green");
+          document.getElementById(`_bottomTeam`).classList.remove("red");
+          document.getElementById(`_bottomTeam`).classList.add("green");
         }
         calculateResult();
       });
-    
+      
       bottomTeamToggleBtn.addEventListener("click", () => {
-        if (bottomTeam.classList.contains("green")) {
-          bottomTeam.classList.remove("green");
-          bottomTeam.classList.add("red");
+        if (document.getElementById(`_bottomTeam`).classList.contains("green")) {
+          document.getElementById(`_bottomTeam`).classList.remove("green");
+          document.getElementById(`_bottomTeam`).classList.add("red");
         } else {
-          bottomTeam.classList.remove("red");
-          bottomTeam.classList.add("green");
+          document.getElementById(`_bottomTeam`).classList.remove("red");
+          document.getElementById(`_bottomTeam`).classList.add("green");
         }
-        if (topTeam.classList.contains("red")) {
-          topTeam.classList.remove("red");
-          topTeam.classList.add("green");
+        if (document.getElementById(`_topTeam`).classList.contains("red")) {
+          document.getElementById(`_topTeam`).classList.remove("red");
+          document.getElementById(`_topTeam`).classList.add("green");
         } else {
-          topTeam.classList.remove("green");
-          topTeam.classList.add("red");
+          document.getElementById(`_topTeam`).classList.remove("green");
+          document.getElementById(`_topTeam`).classList.add("red");
         }
         calculateResult();
       });
-    
+      
       topSchoetBtn.addEventListener("click", () => {
         topSchoet++;
         topSchoetDisplay.textContent = topSchoet;
         calculateResult();
       });
-    
+      
       bottomSchoetBtn.addEventListener("click", () => {
         bottomSchoet++;
         bottomSchoetDisplay.textContent = bottomSchoet;
         calculateResult();
       });
-    
+      
       topMeterInput.addEventListener("input", calculateResult);
       bottomMeterInput.addEventListener("input", calculateResult);
-    
+      
       function calculateResult() {
         let meterDiff = parseInt(topMeterInput.value) - parseInt(bottomMeterInput.value);
         let schoeetDiff = topSchoet - bottomSchoet;
-        let gender = genderSelect.value;
+        let gender = document.getElementById("genderSelect").value;
         let threshold = (gender === "men") ? 150 : 100;
-    
+      
         let absMeterDiff = Math.abs(meterDiff);
         let extraSchoet = Math.floor(absMeterDiff / threshold);
-    
+      
         if (meterDiff > 0) {
           schoeetDiff += extraSchoet;
           meterDiff = meterDiff % threshold;
@@ -285,64 +256,40 @@
           let leftover = absMeterDiff % threshold;
           meterDiff = -leftover;
         }
-        
-        if (bottomTeam.classList.contains("green") && schoeetDiff > 0) {
+      
+        if (document.getElementById(`_bottomTeam`).classList.contains("green") && schoeetDiff > 0) {
           schoeetDiff -= 0.5;
-        } else if (topTeam.classList.contains("green") && schoeetDiff < 0) {
+        } else if (document.getElementById(`_topTeam`).classList.contains("green") && schoeetDiff < 0) {
           schoeetDiff += 0.5;
         }
-    
-        ergebnisSchoet.textContent = schoeetDiff.toFixed(1);
-        ergebnisMeter.textContent = meterDiff.toFixed(0);
+      
+        document.getElementById(`_ergebnisSchoet`).textContent = schoeetDiff.toFixed(1);
+        document.getElementById(`_ergebnisMeter`).textContent = meterDiff.toFixed(0);
         saveState();
       }
-    
-      resetBtn.addEventListener("click", () => {
-        document.querySelectorAll('tbody input[type="text"]').forEach(input => {
-          input.value = "";
-        });
-        document.querySelectorAll('tbody input[type="checkbox"]').forEach(checkbox => {
-          checkbox.checked = false;
-        });
-        topSchoet = 0;
-        bottomSchoet = 0;
-        topSchoetDisplay.textContent = 0;
-        bottomSchoetDisplay.textContent = 0;
-        topMeterInput.value = 0;
-        bottomMeterInput.value = 0;
-        document.getElementById(`_topVerein`).value = "";
-        document.getElementById(`_bottomVerein`).value = "";
-        ergebnisSchoet.textContent = "0.0";
-        ergebnisMeter.textContent = "0";
-        genderSelect.value = "men";
-        topTeam.classList.remove("green");
-        topTeam.classList.add("red");
-        bottomTeam.classList.remove("red");
-        bottomTeam.classList.add("green");
-        saveState();
-      });
-    
-      // Speichert den aktuellen Zustand in Firebase
+      
       function saveState() {
         const state = {
           topTeam: {
             verein: document.getElementById(`_topVerein`).value,
             schoet: topSchoet,
             meter: Number(topMeterInput.value),
-            leadership: topTeam.classList.contains("green"),
+            leadership: document.getElementById(`_topTeam`).classList.contains("green")
           },
           bottomTeam: {
             verein: document.getElementById(`_bottomVerein`).value,
             schoet: bottomSchoet,
             meter: Number(bottomMeterInput.value),
-            leadership: bottomTeam.classList.contains("green"),
+            leadership: document.getElementById(`_bottomTeam`).classList.contains("green")
           }
         };
         db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').set(state);
       }
+      
+      // Reset-Funktion (optional hinzufügen, wenn benötigt)
     }
     
-    /******** Firebase-Live-Listener und Summary ********/
+    /******** Firebase Live-Listener und Summary ********/
     function setupFirebaseListeners() {
       groups.forEach(g => {
         db.ref('competitions/' + compId + '/groups/' + g.id + '/scoreboard').on('value', snapshot => {
@@ -351,7 +298,6 @@
             if (!groupStates[g.id]) groupStates[g.id] = {};
             groupStates[g.id].scoreboard = state;
             if (g.id === selectedGroup) {
-              // Aktualisiere die lokale UI (nur die Zahlen, Verein etc.)
               updateScoreboardUI(selectedGroup, state);
             }
             updateSummary();
@@ -361,11 +307,10 @@
     }
     
     function updateScoreboardUI(groupId, state) {
-      // Update OBEN
       document.getElementById(`_topVerein`).value = state.topTeam.verein;
       document.getElementById(`_topSchoetDisplay`).textContent = state.topTeam.schoet;
       document.getElementById(`_topMeterInput`).value = state.topTeam.meter;
-      // Update UNTEN
+      
       document.getElementById(`_bottomVerein`).value = state.bottomTeam.verein;
       document.getElementById(`_bottomSchoetDisplay`).textContent = state.bottomTeam.schoet;
       document.getElementById(`_bottomMeterInput`).value = state.bottomTeam.meter;
@@ -378,7 +323,6 @@
           const state = groupStates[g.id].scoreboard;
           let diff = state.topTeam.schoet - state.bottomTeam.schoet;
           let meterDiff = state.topTeam.meter - state.bottomTeam.meter;
-          // Führung anpassen:
           if (state.bottomTeam.leadership && diff > 0) { diff -= 0.5; }
           else if (state.topTeam.leadership && diff < 0) { diff += 0.5; }
           let führer = "";
@@ -398,10 +342,8 @@
     }
     
     /******** Initialisierung ********/
-    // Render die detaillierte Ansicht der Standardgruppe
-    renderDetailedView(selectedGroup);
-    // Starte Firebase-Live-Listener
     setupFirebaseListeners();
+    renderDetailedView(selectedGroup);
   </script>
 </body>
 </html>
