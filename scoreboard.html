@@ -15,9 +15,9 @@
       cursor: pointer;
       text-align: center;
     }
-    /* Gruppennamen in den Boxen: fett und schwarz */
+    /* Gruppennamen in den Boxen: weiß und fett */
     .groupBox strong {
-      color: black;
+      color: #fff;
       font-weight: bold;
     }
   </style>
@@ -63,7 +63,7 @@
     document.getElementById("compIdDisplay").textContent = compId;
     document.getElementById("compNameDisplay").textContent = compName;
     
-    // Definiere die Gruppen und die Zielseiten
+    // Definiere die Gruppen und Zielseiten
     const groups = [
       { id: "holz1", name: "Holz 1", target: "scoreboardholz1.html" },
       { id: "holz2", name: "Holz 2", target: "scoreboardholz2.html" },
@@ -73,7 +73,7 @@
     
     const groupBoxesContainer = document.getElementById("groupsContainer");
     
-    // Erstelle für jede Gruppe eine Box, in der der Gruppenname und das Ergebnis angezeigt werden.
+    // Erstelle für jede Gruppe eine Box, in der der Gruppenname (weiß und fett) und das Ergebnis angezeigt werden
     function updateGroupBoxes() {
       // Leere den Container zunächst
       groupBoxesContainer.innerHTML = "<h2>Gruppe auswählen</h2>";
@@ -84,14 +84,14 @@
           .then(snapshot => {
             const data = snapshot.val();
             const result = data && data.schoet ? data.schoet : 0;
-            // Bestimme die Hintergrundfarbe: grün wenn leadership true, sonst rot; Fallback: grau
+            // Bestimme die Hintergrundfarbe: grün, wenn leadership true, sonst rot; Fallback: grau
             const bgColor = data && typeof data.leadership === "boolean" ? (data.leadership ? "green" : "red") : "gray";
             
             // Erzeuge die Box
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = bgColor;
-            // Anstatt "Top Schoet" soll "Ergebnis" angezeigt werden.
+            // Oben wird der Gruppenname (in white und bold – siehe CSS) und darunter "Ergebnis: ..." angezeigt.
             box.innerHTML = `<strong></strong><br>Ergebnis: `;
             box.addEventListener("click", () => {
               // Weiterleitung zur entsprechenden Scoreboard-Seite mit compId und compName als Parameter
