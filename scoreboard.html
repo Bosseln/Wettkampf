@@ -54,7 +54,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
   <script>
-    // Firebase-Konfiguration – ggf. anpassen
+    // Firebase-Konfiguration – passe diese Werte ggf. an
     const firebaseConfig = {
       apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
       authDomain: "wettkampf-f6f92.firebaseapp.com",
@@ -68,7 +68,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Lese compId und compName aus der URL (z.B. ?compId=ABC123&compName=MeinWettkampf)
+    // Lese Wettkampfname und Wettkampf-ID aus der URL, z.B. ?compId=ABC123&compName=MeinWettkampf
     const params = new URLSearchParams(window.location.search);
     const compId = params.get("compId") || "Keine ID";
     const compName = params.get("compName") || "Kein Name";
@@ -85,11 +85,12 @@
     
     const groupBoxesContainer = document.getElementById("groupsContainer");
     
-    // Erstelle für jede Gruppe eine Box, die den Gruppennamen oben und den Wert von resultSchoet als "Ergebnis:" anzeigt.
+    // Erstelle für jede Gruppe eine Box mit Gruppennamen oben und dem Ergebnis (schoeetDiff) darunter (ohne zusätzlichen Text)
     function updateGroupBoxes() {
       groupBoxesContainer.innerHTML = "<h2>Gruppe auswählen</h2>";
       
       groups.forEach(g => {
+        // Hier lesen wir den gesamten Zustand der Gruppe, um den berechneten schoeetDiff (resultSchoet) zu erhalten
         db.ref('competitions/' + compId + '/groups/' + g.id + '/scoreboard').once('value')
           .then(snapshot => {
             const data = snapshot.val() || {};
@@ -102,8 +103,8 @@
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = bgColor;
-            // Oben in der Box wird der Gruppenname in weiß und fett angezeigt, darunter das Ergebnis
-            box.innerHTML = `<div class="groupName"></div><div>Ergebnis: </div>`;
+            // Oben steht der Gruppenname (fett und weiß), darunter nur der Zahlenwert
+            box.innerHTML = `<div class="groupName"></div><div></div>`;
             box.addEventListener("click", () => {
               window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
                                       "&compName=" + encodeURIComponent(compName);
@@ -115,7 +116,7 @@
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = "gray";
-            box.innerHTML = `<div class="groupName"></div><div>Ergebnis: 0</div>`;
+            box.innerHTML = `<div class="groupName"></div><div>0</div>`;
             box.addEventListener("click", () => {
               window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
                                       "&compName=" + encodeURIComponent(compName);
