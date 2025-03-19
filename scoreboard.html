@@ -15,12 +15,12 @@
       cursor: pointer;
       text-align: center;
     }
-    /* Gruppennamen in den Boxen: Weiß und Fett */
+    /* Gruppenname separat oben – weiß und fett */
     .groupBox .groupName {
-      color: #fff;
       font-weight: bold;
       font-size: 1.2em;
       margin-bottom: 5px;
+      color: #fff;
     }
     button.refreshBtn {
       padding: 10px 15px;
@@ -85,7 +85,7 @@
     
     const groupBoxesContainer = document.getElementById("groupsContainer");
     
-    // Erstelle für jede Gruppe eine Box, die den Gruppen-Namen (weiß & fett) und das aktuelle Ergebnis anzeigt.
+    // Erstelle für jede Gruppe eine Box, die den Gruppennamen (oben) und das Ergebnis anzeigt.
     function updateGroupBoxes() {
       // Leere den Container zunächst
       groupBoxesContainer.innerHTML = "<h2>Gruppe auswählen</h2>";
@@ -95,12 +95,13 @@
           .then(snapshot => {
             const data = snapshot.val() || {};
             const result = data.schoet || 0;
+            // Hintergrundfarbe anhand der Führung; falls nicht vorhanden, grau
             const bgColor = (typeof data.leadership === "boolean") ? (data.leadership ? "green" : "red") : "gray";
             
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = bgColor;
-            // Gruppenname in einem separaten Div oben, Ergebnis darunter
+            // Gruppennamen oben, Ergebnis darunter
             box.innerHTML = `<div class="groupName"></div><div>Ergebnis: </div>`;
             box.addEventListener("click", () => {
               window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
