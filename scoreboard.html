@@ -31,7 +31,7 @@
   <div class="container">
     <p><strong>Wettkampfname:</strong> <span id="compNameDisplay"></span></p>
     <p><strong>Wettkampf-ID:</strong> <span id="compIdDisplay"></span></p>
-    <p>Teile diesen Screenshot, damit andere dem Wettkampf beitreten können.</p>
+    <p>Teile die Wettkampf-ID, damit andere dem Wettkampf beitreten können.</p>
   </div>
   
   <!-- Dropdown zur Auswahl der Gruppe -->
@@ -63,7 +63,7 @@
     // Beim Wechseln des Dropdowns: Weiterleitung zur entsprechenden Scoreboard-Seite
     document.getElementById("groupSelect").addEventListener("change", function() {
       const group = this.value;
-      if (group === "auswahl") return; // Keine Aktion bei "Auswahl"
+      if (group === "auswahl") return; // Keine Aktion bei Auswahl "Auswahl"
       let targetFile = "";
       if (group === "holz1") {
         targetFile = "scoreboardholz1.html";
