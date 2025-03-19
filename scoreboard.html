@@ -15,10 +15,10 @@
       cursor: pointer;
       text-align: center;
     }
-    /* Gruppennamen oben: Weiß und Fett */
+    /* Der Gruppenname wird oben in der Box fett, in weiß und in 1.2em Größe angezeigt */
     .groupBox .groupName {
       font-weight: bold;
-      font-size: 5px;
+      font-size: 1.2em;
       margin-bottom: 5px;
       color: #fff;
     }
@@ -54,7 +54,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
   <script>
-    // Firebase-Konfiguration – passe diese Werte ggf. an
+    // Firebase-Konfiguration – ggf. anpassen
     const firebaseConfig = {
       apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
       authDomain: "wettkampf-f6f92.firebaseapp.com",
@@ -68,7 +68,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Lese Wettkampfname und Wettkampf-ID aus der URL, z.B. ?compId=ABC123&compName=MeinWettkampf
+    // Lese compId und compName aus der URL, z.B. ?compId=ABC123&compName=MeinWettkampf
     const params = new URLSearchParams(window.location.search);
     const compId = params.get("compId") || "Keine ID";
     const compName = params.get("compName") || "Kein Name";
@@ -85,12 +85,12 @@
     
     const groupBoxesContainer = document.getElementById("groupsContainer");
     
-    // Erstelle für jede Gruppe eine Box mit Gruppennamen oben und dem Ergebnis (schoeetDiff) darunter (ohne zusätzlichen Text)
+    // Für jede Gruppe wird eine Box erstellt, in der oben der Gruppenname (in der Formatierung wie der alte "Ergebnis:"-Text) und darunter der Wert (resultSchoet) angezeigt wird.
     function updateGroupBoxes() {
       groupBoxesContainer.innerHTML = "<h2>Gruppe auswählen</h2>";
       
       groups.forEach(g => {
-        // Hier lesen wir den gesamten Zustand der Gruppe, um den berechneten schoeetDiff (resultSchoet) zu erhalten
+        // Hier laden wir den gesamten Zustand der Gruppe, um den berechneten schoeetDiff (resultSchoet) zu erhalten
         db.ref('competitions/' + compId + '/groups/' + g.id + '/scoreboard').once('value')
           .then(snapshot => {
             const data = snapshot.val() || {};
@@ -103,7 +103,7 @@
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = bgColor;
-            // Oben steht der Gruppenname (fett und weiß), darunter nur der Zahlenwert
+            // Oben in der Box soll nun der jeweilige Gruppenname stehen – in der gleichen Größe und Farbe wie der frühere "Ergebnis:"-Text
             box.innerHTML = `<div class="groupName"></div><div></div>`;
             box.addEventListener("click", () => {
               window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
@@ -132,7 +132,7 @@
     // Automatische Aktualisierung alle 60 Sekunden
     setInterval(updateGroupBoxes, 60000);
     
-    // Button zum sofortigen Aktualisieren
+    // Aktualisieren-Button: Aktualisiert die Gruppenboxen sofort
     document.getElementById("refreshBtn").addEventListener("click", updateGroupBoxes);
   </script>
 </body>
