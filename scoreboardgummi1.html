@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <title>Boßeln Scoreboard</title>
+  <title>Boßeln Scoreboard – Gummi 1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -55,7 +55,7 @@
 </head>
 <body>
 
-<h1>Boßeln Scoreboard</h1>
+<h1>Boßeln Scoreboard – Gummi 1</h1>
 
 <!-- Geschlechtsauswahl und Reset -->
 <div>
@@ -146,63 +146,6 @@
         <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
         <td><input type="checkbox" /></td>
       </tr>
-
-      <!-- Unteres Team: Werfer 1-4 + Ersatz 1 -->
-      <tr>
-        <td><input type="text" placeholder="Werfer 1" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
-      </tr>
-      <tr>
-        <td><input type="text" placeholder="Werfer 2" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
-      </tr>
-      <tr>
-        <td><input type="text" placeholder="Werfer 3" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
-      </tr>
-      <tr>
-        <td><input type="text" placeholder="Werfer 4" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
-      </tr>
-      <tr>
-        <td><input type="text" placeholder="Ersatz 1" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
-      </tr>
     </tbody>
   </table>
 </div>
@@ -222,34 +165,75 @@
   <strong>Ergebnis Meter:</strong> <span id="ergebnisMeter">0</span>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
 <script>
-  // Element-Referenzen
+  // Lese die Wettkampfdaten aus dem URL-Parameter (compId) – für diese Datei gilt die Gruppe "gummi1"
+  const params = new URLSearchParams(window.location.search);
+  const compId = params.get("compId") || "Keine ID";
+  // Für diese Datei ist die Gruppen-ID fest: gummi1
+  const groupId = "gummi1";
+  
+  // Firebase-Konfiguration – passe diese Werte ggf. an
+  const firebaseConfig = {
+    apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
+    authDomain: "wettkampf-f6f92.firebaseapp.com",
+    databaseURL: "https://wettkampf-f6f92-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "wettkampf-f6f92",
+    storageBucket: "wettkampf-f6f92.firebasestorage.app",
+    messagingSenderId: "161090727748",
+    appId: "1:161090727748:web:33f4ff7ce4f6e5c08f7111",
+    measurementId: "G-WCV2950HGK"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  
+  // Element-Referenzen (wie im Originalcode)
   const topTeam = document.getElementById("topTeam");
   const bottomTeam = document.getElementById("bottomTeam");
-
+  
   const topTeamToggleBtn = document.getElementById("topTeamToggleBtn");
   const bottomTeamToggleBtn = document.getElementById("bottomTeamToggleBtn");
-
+  
   const topSchoetBtn = document.getElementById("topSchoetBtn");
   const bottomSchoetBtn = document.getElementById("bottomSchoetBtn");
-
+  
   const topSchoetDisplay = document.getElementById("topSchoetDisplay");
   const bottomSchoetDisplay = document.getElementById("bottomSchoetDisplay");
-
+  
   const topMeterInput = document.getElementById("topMeterInput");
   const bottomMeterInput = document.getElementById("bottomMeterInput");
-
+  
   const ergebnisSchoet = document.getElementById("ergebnisSchoet");
   const ergebnisMeter = document.getElementById("ergebnisMeter");
-
+  
   const genderSelect = document.getElementById("genderSelect");
   const resetBtn = document.getElementById("resetBtn");
-
-  // Globale Variablen für Schoet
+  
+  // Globale Variablen
   let topSchoet = 0;
   let bottomSchoet = 0;
-
-  // Farb-Umschaltung ("Führung")
+  
+  // Funktion zum Speichern des Zustands in Firebase
+  function saveState() {
+    const state = {
+      topTeam: {
+        verein: document.getElementById("topVerein").value,
+        schoet: Number(topSchoetDisplay.textContent),
+        meter: Number(topMeterInput.value),
+        leadership: topTeam.classList.contains("green")
+      },
+      bottomTeam: {
+        verein: document.getElementById("bottomVerein").value,
+        schoet: Number(bottomSchoetDisplay.textContent),
+        meter: Number(bottomMeterInput.value),
+        leadership: bottomTeam.classList.contains("green")
+      }
+    };
+    db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').set(state);
+  }
+  
+  // Event-Listener
   topTeamToggleBtn.addEventListener("click", () => {
     if (topTeam.classList.contains("red")) {
       topTeam.classList.remove("red");
@@ -267,7 +251,7 @@
     }
     calculateResult();
   });
-
+  
   bottomTeamToggleBtn.addEventListener("click", () => {
     if (bottomTeam.classList.contains("green")) {
       bottomTeam.classList.remove("green");
@@ -285,34 +269,31 @@
     }
     calculateResult();
   });
-
-  // Schoet-Knöpfe
+  
   topSchoetBtn.addEventListener("click", () => {
     topSchoet++;
     topSchoetDisplay.textContent = topSchoet;
     calculateResult();
   });
-
+  
   bottomSchoetBtn.addEventListener("click", () => {
     bottomSchoet++;
     bottomSchoetDisplay.textContent = bottomSchoet;
     calculateResult();
   });
-
-  // Meter-Eingaben
+  
   topMeterInput.addEventListener("input", calculateResult);
   bottomMeterInput.addEventListener("input", calculateResult);
-
-  // Ergebnis-Berechnung
+  
   function calculateResult() {
     let meterDiff = parseInt(topMeterInput.value) - parseInt(bottomMeterInput.value);
     let schoeetDiff = topSchoet - bottomSchoet;
     let gender = genderSelect.value;
     let threshold = (gender === "men") ? 150 : 100;
-
+  
     let absMeterDiff = Math.abs(meterDiff);
     let extraSchoet = Math.floor(absMeterDiff / threshold);
-
+  
     if (meterDiff > 0) {
       schoeetDiff += extraSchoet;
       meterDiff = meterDiff % threshold;
@@ -322,23 +303,17 @@
       meterDiff = -leftover;
     }
     
-    // Zusätzliche Anpassung:
-    // - Wenn der untere Bereich grün ist und das Ergebnis positiv, -0,5 abziehen.
-    // - Wenn der obere Bereich grün ist und das Ergebnis negativ, +0,5 addieren.
     if (bottomTeam.classList.contains("green") && schoeetDiff > 0) {
       schoeetDiff -= 0.5;
     } else if (topTeam.classList.contains("green") && schoeetDiff < 0) {
       schoeetDiff += 0.5;
     }
     
-    // Ergebnisse formatieren:
-    // - Schoet-Ergebnis mit 1 Kommastelle.
-    // - Meter-Ergebnis als ganze Zahl.
     ergebnisSchoet.textContent = schoeetDiff.toFixed(1);
     ergebnisMeter.textContent = meterDiff.toFixed(0);
+    saveState();
   }
-
-  // Reset-Funktion
+  
   resetBtn.addEventListener("click", () => {
     document.querySelectorAll('tbody input[type="text"]').forEach(input => {
       input.value = "";
@@ -361,6 +336,7 @@
     topTeam.classList.add("red");
     bottomTeam.classList.remove("red");
     bottomTeam.classList.add("green");
+    saveState();
   });
 </script>
 </body>
