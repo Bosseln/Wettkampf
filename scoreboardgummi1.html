@@ -380,6 +380,7 @@
       },
       resultSchoet: ergebnisSchoet.textContent,
       resultMeter: ergebnisMeter.textContent,
+      gender: genderSelect.value,
       upperTable: saveTable("upperTable"),
       lowerTable: saveTable("lowerTable")
     };
@@ -389,9 +390,10 @@
   function saveTable(tableId) {
     const table = document.getElementById(tableId);
     let data = [];
-    for (let i = 0; i < table.rows.length; i++) {
+    const rows = table.tBodies[0].rows;
+    for (let i = 0; i < rows.length; i++) {
       let rowData = [];
-      let row = table.rows[i];
+      let row = rows[i];
       for (let j = 0; j < row.cells.length; j++) {
         let input = row.cells[j].querySelector("input");
         if (input) {
@@ -439,6 +441,10 @@
             bottomTeam.classList.remove("green");
           }
           
+          if (state.gender) {
+            genderSelect.value = state.gender;
+          }
+          
           if (state.upperTable) loadTable("upperTable", state.upperTable);
           if (state.lowerTable) loadTable("lowerTable", state.lowerTable);
           ergebnisSchoet.textContent = state.resultSchoet || "0.0";
@@ -453,9 +459,10 @@
   
   function loadTable(tableId, data) {
     const table = document.getElementById(tableId);
+    const rows = table.tBodies[0].rows;
     if (!data) return;
-    for (let i = 0; i < table.rows.length && i < data.length; i++) {
-      let row = table.rows[i];
+    for (let i = 0; i < rows.length && i < data.length; i++) {
+      let row = rows[i];
       for (let j = 0; j < row.cells.length && j < data[i].length; j++) {
         let input = row.cells[j].querySelector("input");
         if (input) {
@@ -469,7 +476,7 @@
     }
   }
   
-  // Event-Listener
+  // Event-Listener für die Team-Bereiche
   topTeamToggleBtn.addEventListener("click", () => {
     if (topTeam.classList.contains("red")) {
       topTeam.classList.remove("red");
@@ -520,6 +527,19 @@
   
   topMeterInput.addEventListener("input", calculateResult);
   bottomMeterInput.addEventListener("input", calculateResult);
+  
+  // Fügt Event-Listener zu allen Input-Feldern in den Tabellen hinzu, sodass Änderungen sofort gespeichert werden
+  function addTableInputListeners() {
+    const upperInputs = document.querySelectorAll("#upperTable input");
+    upperInputs.forEach(input => {
+      input.addEventListener("change", calculateResult);
+    });
+    const lowerInputs = document.querySelectorAll("#lowerTable input");
+    lowerInputs.forEach(input => {
+      input.addEventListener("change", calculateResult);
+    });
+  }
+  addTableInputListeners();
   
   function calculateResult() {
     let meterDiff = parseInt(topMeterInput.value) - parseInt(bottomMeterInput.value);
