@@ -64,11 +64,21 @@
     document.getElementById("groupSelect").addEventListener("change", function() {
       const group = this.value;
       if (group === "auswahl") return; // Wenn "Auswahl" gewählt, nichts tun
-      // Leite zur entsprechenden Scoreboard-Seite weiter.
-      // Hier gehen wir davon aus, dass du separate Dateien hast:
-      // "holz1.html", "holz2.html", "gummi1.html" und "gummi2.html".
-      // Die Wettkampf-ID wird per URL-Parameter übergeben.
-      window.location.href = group + ".html?compId=" + encodeURIComponent(compId);
+      
+      // Bestimme anhand des Dropdown-Wertes den Dateinamen:
+      let targetFile = "";
+      if (group === "holz1") {
+        targetFile = "scoreboardholz1.html";
+      } else if (group === "holz2") {
+        targetFile = "scoreboardholz2.html";
+      } else if (group === "gummi1") {
+        targetFile = "scoreboardgummi1.html";
+      } else if (group === "gummi2") {
+        targetFile = "scoreboardgummi2.html";
+      }
+      
+      // Weiterleitung zur entsprechenden Scoreboard-Seite mit der Wettkampf-ID als Parameter
+      window.location.href = targetFile + "?compId=" + encodeURIComponent(compId);
     });
   </script>
 </body>
