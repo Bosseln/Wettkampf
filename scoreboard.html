@@ -16,9 +16,11 @@
       text-align: center;
     }
     /* Gruppennamen in den Boxen: Weiß und Fett */
-    .groupBox strong {
+    .groupBox .groupName {
       color: #fff;
       font-weight: bold;
+      font-size: 1.2em;
+      margin-bottom: 5px;
     }
     button.refreshBtn {
       padding: 10px 15px;
@@ -98,8 +100,8 @@
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = bgColor;
-            // Hier wird der Gruppenname fett und weiß angezeigt
-            box.innerHTML = `<strong></strong><br>Ergebnis: `;
+            // Gruppenname in einem separaten Div oben, Ergebnis darunter
+            box.innerHTML = `<div class="groupName"></div><div>Ergebnis: </div>`;
             box.addEventListener("click", () => {
               window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
                                       "&compName=" + encodeURIComponent(compName);
@@ -111,7 +113,7 @@
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = "gray";
-            box.innerHTML = `<strong></strong><br>Ergebnis: 0`;
+            box.innerHTML = `<div class="groupName"></div><div>Ergebnis: 0</div>`;
             box.addEventListener("click", () => {
               window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
                                       "&compName=" + encodeURIComponent(compName);
