@@ -47,22 +47,21 @@
   </div>
   
   <script>
-    // Lese Wettkampf-ID und Passwort aus der URL, z.B. ?compId=ABC123&compPw=PASS
+    // Lese Wettkampf-ID und Passwort aus der URL (z.B. ?compId=ABC123&compPw=PASS)
     const params = new URLSearchParams(window.location.search);
     const compId = params.get("compId");
     const compPw = params.get("compPw");
-
+    
     if (!compId) {
       alert("Fehlende Wettkampf-ID!");
     }
     document.getElementById("compIdDisplay").textContent = compId;
-    // Falls kein Passwort übergeben wird, wird "(nicht vorhanden)" angezeigt
     document.getElementById("compPwDisplay").textContent = compPw ? compPw : "(nicht vorhanden)";
-
+    
     // Beim Ändern des Dropdowns: Wenn eine Gruppe gewählt wird, weiterleiten
     document.getElementById("groupSelect").addEventListener("change", function() {
       const group = this.value;
-      if (group === "auswahl") return; // Wenn "Auswahl" gewählt, nichts tun
+      if (group === "auswahl") return; // Keine Aktion bei "Auswahl"
       let targetFile = "";
       if (group === "holz1") {
         targetFile = "scoreboardholz1.html";
@@ -73,8 +72,8 @@
       } else if (group === "gummi2") {
         targetFile = "scoreboardgummi2.html";
       }
-      // Weiterleitung zur entsprechenden Scoreboard-Seite mit der Wettkampf-ID als Parameter
-      window.location.href = targetFile + "?compId=" + encodeURIComponent(compId);
+      // Weiterleitung zur jeweiligen Scoreboard-Seite mit beiden Parametern
+      window.location.href = targetFile + "?compId=" + encodeURIComponent(compId) + "&compPw=" + encodeURIComponent(compPw);
     });
   </script>
 </body>
