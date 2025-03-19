@@ -5,22 +5,15 @@
   <title>Wettkampf – Gruppe auswählen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    .container {
-      border: 1px solid #ccc;
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .container { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+    .groupBox {
       padding: 15px;
-      margin-bottom: 20px;
-    }
-    label {
-      font-weight: bold;
-    }
-    select {
-      padding: 5px;
-      font-size: 1em;
-      margin-top: 10px;
+      margin-bottom: 10px;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
     }
   </style>
 </head>
@@ -34,20 +27,28 @@
     <p>Teile die Wettkampf-ID, damit andere dem Wettkampf beitreten können.</p>
   </div>
   
-  <!-- Dropdown zur Auswahl der Gruppe -->
+  <!-- Container für die Gruppenauswahl (Summary-Boxen) -->
   <div class="container">
-    <label for="groupSelect">Gruppe auswählen:</label><br>
-    <select id="groupSelect">
-      <option value="auswahl">Auswahl</option>
-      <option value="holz1">Holz 1</option>
-      <option value="holz2">Holz 2</option>
-      <option value="gummi1">Gummi 1</option>
-      <option value="gummi2">Gummi 2</option>
-    </select>
+    <h2>Gruppe auswählen</h2>
+    <div id="groupBoxes"></div>
   </div>
   
   <script>
-    // Lese Wettkampf-ID und Wettkampfname aus der URL, z.B. ?compId=ABC123&compName=MeinWettkampf
+    // Firebase-Konfiguration (ersetze ggf. deine Werte)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
+      authDomain: "wettkampf-f6f92.firebaseapp.com",
+      databaseURL: "https://wettkampf-f6f92-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "wettkampf-f6f92",
+      storageBucket: "wettkampf-f6f92.firebasestorage.app",
+      messagingSenderId: "161090727748",
+      appId: "1:161090727748:web:33f4ff7ce4f6e5c08f7111",
+      measurementId: "G-WCV2950HGK"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    // Lese Wettkampfname und Wettkampf-ID aus der URL, z. B. ?compId=ABC123&compName=MeinWettkampf
     const params = new URLSearchParams(window.location.search);
     const compId = params.get("compId");
     const compName = params.get("compName");
@@ -56,28 +57,59 @@
       alert("Fehlende Wettkampfdaten!");
     }
     
-    // Zeige die Werte an
+    // Zeige die Wettkampfdaten an
     document.getElementById("compIdDisplay").textContent = compId;
     document.getElementById("compNameDisplay").textContent = compName;
     
-    // Beim Wechseln des Dropdowns: Weiterleitung zur entsprechenden Scoreboard-Seite
-    document.getElementById("groupSelect").addEventListener("change", function() {
-      const group = this.value;
-      if (group === "auswahl") return; // Keine Aktion bei Auswahl "Auswahl"
-      let targetFile = "";
-      if (group === "holz1") {
-        targetFile = "scoreboardholz1.html";
-      } else if (group === "holz2") {
-        targetFile = "scoreboardholz2.html";
-      } else if (group === "gummi1") {
-        targetFile = "scoreboardgummi1.html";
-      } else if (group === "gummi2") {
-        targetFile = "scoreboardgummi2.html";
-      }
-      // Weiterleitung zur Scoreboard-Seite mit compId und compName als Parameter
-      window.location.href = targetFile + "?compId=" + encodeURIComponent(compId) +
-                               "&compName=" + encodeURIComponent(compName);
-    });
+    // Definiere die Gruppen
+    const groups = [
+      { id: "holz1", name: "Holz 1" },
+      { id: "holz2", name: "Holz 2" },
+      { id: "gummi1", name: "Gummi 1" },
+      { id: "gummi2", name: "Gummi 2" }
+    ];
+    
+    const groupBoxesContainer = document.getElementById("groupBoxes");
+    
+    // Funktion: Erstelle für jede Gruppe eine Box, die das aktuelle Top-Team-Schoet-Ergebnis anzeigt
+    function updateGroupBoxes() {
+      // Leere den Container zunächst
+      groupBoxesContainer.innerHTML = "";
+      
+      groups.forEach(g => {
+        // Lese die Gruppendaten einmalig aus Firebase
+        db.ref('competitions/' + compId + '/groups/' + g.id).once('value').then(snapshot => {
+          const state = snapshot.val();
+          let topSchoet = state && state.topTeam ? state.topTeam.schoet : 0;
+          let bgColor = "gray"; // Fallback-Farbe, wenn keine Daten vorhanden
+          if (state && state.topTeam) {
+            bgColor = state.topTeam.leadership ? "green" : "red";
+          }
+          
+          // Erzeuge die Box
+          const box = document.createElement("div");
+          box.className = "groupBox";
+          box.style.backgroundColor = bgColor;
+          box.innerHTML = `<strong></strong><br>Top Schoet: `;
+          
+          // Klick-Event: Weiterleitung zur entsprechenden Scoreboard-Seite
+          box.addEventListener("click", () => {
+            let targetFile = "";
+            if (g.id === "holz1") targetFile = "scoreboardholz1.html";
+            else if (g.id === "holz2") targetFile = "scoreboardholz2.html";
+            else if (g.id === "gummi1") targetFile = "scoreboardgummi1.html";
+            else if (g.id === "gummi2") targetFile = "scoreboardgummi2.html";
+            window.location.href = targetFile + "?compId=" + encodeURIComponent(compId) +
+                                    "&compName=" + encodeURIComponent(compName);
+          });
+          
+          groupBoxesContainer.appendChild(box);
+        });
+      });
+    }
+    
+    // Rufe die Funktion auf, um die Boxen anzuzeigen
+    updateGroupBoxes();
   </script>
 </body>
 </html>
