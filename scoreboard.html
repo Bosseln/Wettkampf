@@ -83,7 +83,7 @@
     
     const groupBoxesContainer = document.getElementById("groupsContainer");
     
-    // Funktion: Erstelle für jede Gruppe eine Box, die den Gruppen-Namen (weiß & fett) und das aktuelle Ergebnis anzeigt.
+    // Erstelle für jede Gruppe eine Box, die den Gruppen-Namen (weiß & fett) und das aktuelle Ergebnis anzeigt.
     function updateGroupBoxes() {
       // Leere den Container zunächst
       groupBoxesContainer.innerHTML = "<h2>Gruppe auswählen</h2>";
@@ -98,6 +98,7 @@
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = bgColor;
+            // Hier wird der Gruppenname fett und weiß angezeigt
             box.innerHTML = `<strong></strong><br>Ergebnis: `;
             box.addEventListener("click", () => {
               window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
