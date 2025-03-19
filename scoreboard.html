@@ -15,6 +15,13 @@
       cursor: pointer;
       text-align: center;
     }
+    /* Gruppennamen oben: Weiß, Fett und 1.2em */
+    .groupBox .groupName {
+      font-weight: bold;
+      font-size: 1.2em;
+      margin-bottom: 5px;
+      color: #fff;
+    }
     button.refreshBtn {
       padding: 10px 15px;
       font-size: 1em;
@@ -47,7 +54,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
   <script>
-    // Firebase-Konfiguration – ggf. anpassen
+    // Firebase-Konfiguration – passe diese Werte ggf. an
     const firebaseConfig = {
       apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
       authDomain: "wettkampf-f6f92.firebaseapp.com",
@@ -61,7 +68,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Lese compId und compName aus der URL (z. B. ?compId=ABC123&compName=MeinWettkampf)
+    // Lese compId und compName aus der URL, z. B. ?compId=ABC123&compName=MeinWettkampf
     const params = new URLSearchParams(window.location.search);
     const compId = params.get("compId") || "Keine ID";
     const compName = params.get("compName") || "Kein Name";
@@ -78,25 +85,29 @@
     
     const groupBoxesContainer = document.getElementById("groupsContainer");
     
-    // Erstelle für jede Gruppe eine Box, in der oben der Gruppenname (mit Inline-Stilen) und darunter der Wert (resultSchoet) angezeigt wird.
+    // Erstelle für jede Gruppe eine Box: Oben der Gruppenname (als "Label") und darunter der Wert resultSchoet
     function updateGroupBoxes() {
       groupBoxesContainer.innerHTML = "<h2>Gruppe auswählen</h2>";
       
       groups.forEach(g => {
+        // Hier wird der gesamte Zustand der Gruppe geladen
         db.ref('competitions/' + compId + '/groups/' + g.id + '/scoreboard').once('value')
           .then(snapshot => {
             const data = snapshot.val() || {};
-            const result = data.resultSchoet || 0;
-            // Hintergrundfarbe anhand der Führung (falls vorhanden)
-            const bgColor = (typeof data.topTeam?.leadership === "boolean")
+            // Falls resultSchoet nicht existiert, nutze 0
+            const result = (data.resultSchoet !== undefined) ? data.resultSchoet : 0;
+            // Hintergrundfarbe anhand der Führung – sofern topTeam.leadership definiert ist
+            const bgColor = (data.topTeam && typeof data.topTeam.leadership === "boolean")
               ? (data.topTeam.leadership ? "green" : "red")
               : "gray";
             
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = bgColor;
-            // Hier setzen wir den Gruppennamen (wie der frühere "Ergebnis:"-Text) oben und den Zahlenwert darunter
-            box.innerHTML = `<div style="font-weight: bold; font-size: 1.2em; margin-bottom: 5px; color: #fff;"></div><div style="color: #fff;"></div>`;
+            // In diesem Fall ersetzen wir den bisherigen Text durch:
+            // Oben: Gruppenname in den gleichen Stilen wie früher der Text "Ergebnis:" 
+            // Unten: Nur der Ergebniswert
+            box.innerHTML = `<div class="groupName"></div><div></div>`;
             box.addEventListener("click", () => {
               window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
                                       "&compName=" + encodeURIComponent(compName);
@@ -108,7 +119,7 @@
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = "gray";
-            box.innerHTML = `<div style="font-weight: bold; font-size: 1.2em; margin-bottom: 5px; color: #fff;"></div><div style="color: #fff;">0</div>`;
+            box.innerHTML = `<div class="groupName"></div><div>0</div>`;
             box.addEventListener("click", () => {
               window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
                                       "&compName=" + encodeURIComponent(compName);
