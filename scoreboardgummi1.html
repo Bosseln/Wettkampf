@@ -51,26 +51,19 @@
       margin-left: 10px;
       margin-right: 10px;
     }
-    button#backBtn {
-      padding: 10px 15px;
-      font-size: 1em;
-      cursor: pointer;
-      margin-top: 10px;
-    }
   </style>
 </head>
 <body>
 
 <h1>Boßeln Scoreboard – Gummi 1</h1>
 
-<!-- Geschlechtsauswahl und Zurück-Button -->
+<!-- Geschlechtsauswahl (kein Zurück-Button mehr) -->
 <div>
   <label for="genderSelect">Geschlecht:</label>
   <select id="genderSelect">
     <option value="men">Männer</option>
     <option value="women">Frauen</option>
   </select>
-  <button id="backBtn">Zurück</button>
 </div>
 
 <br>
@@ -84,9 +77,9 @@
   &nbsp;Meter: <input type="number" id="topMeterInput" value="0" />
 </div>
 
-<!-- Tabelle für das obere Team -->
+<!-- Tabelle für das obere Team (mit fester ID "upperTable") -->
 <div class="table-container">
-  <table>
+  <table id="upperTable">
     <thead>
       <tr>
         <th>Runden</th>
@@ -96,61 +89,96 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Für das obere Team: 5 Zeilen (Werfer 1, Werfer 2, Werfer 3, Werfer 4, Ersatz 1) -->
+      <!-- Für das obere Team: 5 Zeilen -->
       <tr>
-        <td><input type="text" placeholder="Werfer 1" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
+        <td><input type="text" id="gummi1_top_name0" placeholder="Werfer 1" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb0_1" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb0_2" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb0_3" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb0_4" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb0_5" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb0_6" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb0_7" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb0_8" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb0_9" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb0_10" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb0_11" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb0_12" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb0_13" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb0_14" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb0_15" /></td>
       </tr>
       <tr>
-        <td><input type="text" placeholder="Werfer 2" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
+        <td><input type="text" id="gummi1_top_name1" placeholder="Werfer 2" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb1_1" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb1_2" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb1_3" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb1_4" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb1_5" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb1_6" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb1_7" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb1_8" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb1_9" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb1_10" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb1_11" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb1_12" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb1_13" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb1_14" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb1_15" /></td>
       </tr>
       <tr>
-        <td><input type="text" placeholder="Werfer 3" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
+        <td><input type="text" id="gummi1_top_name2" placeholder="Werfer 3" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb2_1" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb2_2" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb2_3" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb2_4" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb2_5" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb2_6" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb2_7" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb2_8" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb2_9" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb2_10" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb2_11" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb2_12" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb2_13" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb2_14" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb2_15" /></td>
       </tr>
       <tr>
-        <td><input type="text" placeholder="Werfer 4" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
+        <td><input type="text" id="gummi1_top_name3" placeholder="Werfer 4" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb3_1" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb3_2" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb3_3" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb3_4" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb3_5" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb3_6" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb3_7" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb3_8" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb3_9" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb3_10" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb3_11" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb3_12" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb3_13" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb3_14" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb3_15" /></td>
       </tr>
       <tr>
-        <td><input type="text" placeholder="Ersatz 1" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
+        <td><input type="text" id="gummi1_top_name4" placeholder="Ersatz 1" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb4_1" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb4_2" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb4_3" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb4_4" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb4_5" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb4_6" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb4_7" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb4_8" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb4_9" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb4_10" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb4_11" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb4_12" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb4_13" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb4_14" /></td>
+        <td><input type="checkbox" id="gummi1_top_cb4_15" /></td>
       </tr>
     </tbody>
   </table>
@@ -167,7 +195,7 @@
 
 <!-- Tabelle für das untere Team -->
 <div class="table-container">
-  <table>
+  <table id="lowerTable">
     <thead>
       <tr>
         <th>Runden</th>
@@ -177,61 +205,96 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Für das untere Team: 5 Zeilen (Werfer 1, Werfer 2, Werfer 3, Werfer 4, Ersatz 1) -->
+      <!-- Für das untere Team: 5 Zeilen -->
       <tr>
-        <td><input type="text" placeholder="Werfer 1" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
+        <td><input type="text" id="gummi1_bottom_name0" placeholder="Werfer 1" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb0_1" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb0_2" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb0_3" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb0_4" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb0_5" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb0_6" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb0_7" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb0_8" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb0_9" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb0_10" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb0_11" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb0_12" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb0_13" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb0_14" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb0_15" /></td>
       </tr>
       <tr>
-        <td><input type="text" placeholder="Werfer 2" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
+        <td><input type="text" id="gummi1_bottom_name1" placeholder="Werfer 2" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb1_1" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb1_2" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb1_3" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb1_4" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb1_5" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb1_6" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb1_7" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb1_8" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb1_9" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb1_10" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb1_11" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb1_12" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb1_13" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb1_14" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb1_15" /></td>
       </tr>
       <tr>
-        <td><input type="text" placeholder="Werfer 3" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
+        <td><input type="text" id="gummi1_bottom_name2" placeholder="Werfer 3" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb2_1" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb2_2" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb2_3" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb2_4" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb2_5" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb2_6" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb2_7" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb2_8" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb2_9" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb2_10" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb2_11" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb2_12" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb2_13" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb2_14" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb2_15" /></td>
       </tr>
       <tr>
-        <td><input type="text" placeholder="Werfer 4" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
+        <td><input type="text" id="gummi1_bottom_name3" placeholder="Werfer 4" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb3_1" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb3_2" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb3_3" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb3_4" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb3_5" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb3_6" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb3_7" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb3_8" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb3_9" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb3_10" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb3_11" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb3_12" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb3_13" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb3_14" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb3_15" /></td>
       </tr>
       <tr>
-        <td><input type="text" placeholder="Ersatz 1" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td><td><input type="checkbox" /></td>
-        <td><input type="checkbox" /></td>
+        <td><input type="text" id="gummi1_bottom_name4" placeholder="Ersatz 1" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb4_1" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb4_2" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb4_3" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb4_4" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb4_5" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb4_6" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb4_7" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb4_8" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb4_9" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb4_10" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb4_11" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb4_12" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb4_13" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb4_14" /></td>
+        <td><input type="checkbox" id="gummi1_bottom_cb4_15" /></td>
       </tr>
     </tbody>
   </table>
@@ -293,7 +356,7 @@
   let topSchoet = 0;
   let bottomSchoet = 0;
   
-  // Funktion zum Speichern des Zustands in Firebase
+  // Funktion zum Speichern des Zustands in Firebase (inkl. Tabelle)
   function saveState() {
     const state = {
       topTeam: {
@@ -307,9 +370,93 @@
         schoet: Number(bottomSchoetDisplay.textContent),
         meter: Number(bottomMeterInput.value),
         leadership: bottomTeam.classList.contains("green")
-      }
+      },
+      // Tabelle speichern: obere und untere Tabelle
+      upperTable: saveTable("upperTable"),
+      lowerTable: saveTable("lowerTable")
     };
     db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').set(state);
+  }
+  
+  function saveTable(tableId) {
+    const table = document.getElementById(tableId);
+    let data = [];
+    for (let i = 0; i < table.rows.length; i++) {
+      let rowData = [];
+      let row = table.rows[i];
+      for (let j = 0; j < row.cells.length; j++) {
+        let input = row.cells[j].querySelector("input");
+        if (input) {
+          if (input.type === "checkbox") {
+            rowData.push(input.checked);
+          } else {
+            rowData.push(input.value);
+          }
+        } else {
+          rowData.push(null);
+        }
+      }
+      data.push(rowData);
+    }
+    return data;
+  }
+  
+  // Funktion zum Laden des Zustands aus Firebase
+  function loadState() {
+    db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').once('value')
+      .then(snapshot => {
+        const state = snapshot.val();
+        if (state) {
+          document.getElementById("topVerein").value = state.topTeam.verein || "";
+          topSchoet = state.topTeam.schoet || 0;
+          topSchoetDisplay.textContent = topSchoet;
+          topMeterInput.value = state.topTeam.meter || 0;
+          if (state.topTeam.leadership) {
+            topTeam.classList.add("green");
+            topTeam.classList.remove("red");
+          } else {
+            topTeam.classList.add("red");
+            topTeam.classList.remove("green");
+          }
+          
+          document.getElementById("bottomVerein").value = state.bottomTeam.verein || "";
+          bottomSchoet = state.bottomTeam.schoet || 0;
+          bottomSchoetDisplay.textContent = bottomSchoet;
+          bottomMeterInput.value = state.bottomTeam.meter || 0;
+          if (state.bottomTeam.leadership) {
+            bottomTeam.classList.add("green");
+            bottomTeam.classList.remove("red");
+          } else {
+            bottomTeam.classList.add("red");
+            bottomTeam.classList.remove("green");
+          }
+          
+          loadTable("upperTable", state.upperTable);
+          loadTable("lowerTable", state.lowerTable);
+          calculateResult();
+        }
+      })
+      .catch(err => {
+        console.error("Fehler beim Laden des Zustands:", err);
+      });
+  }
+  
+  function loadTable(tableId, data) {
+    const table = document.getElementById(tableId);
+    if (!data) return;
+    for (let i = 0; i < table.rows.length && i < data.length; i++) {
+      let row = table.rows[i];
+      for (let j = 0; j < row.cells.length && j < data[i].length; j++) {
+        let input = row.cells[j].querySelector("input");
+        if (input) {
+          if (input.type === "checkbox") {
+            input.checked = data[i][j];
+          } else {
+            input.value = data[i][j];
+          }
+        }
+      }
+    }
   }
   
   // Event-Listener
@@ -393,16 +540,8 @@
     saveState();
   }
   
-  // Ersetze den Reset-Button durch einen Zurück-Button:
-  const backBtn = document.createElement("button");
-  backBtn.textContent = "Zurück";
-  backBtn.style.padding = "10px 15px";
-  backBtn.style.fontSize = "1em";
-  backBtn.style.cursor = "pointer";
-  backBtn.addEventListener("click", () => {
-    window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId);
-  });
-  document.body.appendChild(backBtn);
+  // Lade den gespeicherten Zustand beim Laden der Seite
+  loadState();
 </script>
 </body>
 </html>
