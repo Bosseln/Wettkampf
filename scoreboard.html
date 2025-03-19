@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Scoreboard – Boßel Wettkampfrechner</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Optionale PWA-Tags -->
+  <!-- Optionale PWA-Tags (Manifest, Apple-Touch-Icon) -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
@@ -49,7 +49,7 @@
     </select>
   </div>
   
-  <!-- Container für die detaillierte Ansicht der Original-Oberfläche -->
+  <!-- Container für die detaillierte Original-Oberfläche -->
   <div class="container" id="scoreboardContainer"></div>
   
   <!-- Zusammenfassung aller Gruppen -->
@@ -86,7 +86,7 @@
       { id: "gummi1", name: "Gummi 1" },
       { id: "gummi2", name: "Gummi 2" }
     ];
-    let groupStates = {};  // Speichert den Zustand jeder Gruppe
+    let groupStates = {};  // Hier werden die Zustände der einzelnen Gruppen gespeichert
     let selectedGroup = "holz1";  // Standardmäßig "Holz 1"
     
     /******** DOM-Elemente ********/
@@ -96,14 +96,13 @@
     
     groupSelect.value = selectedGroup;
     groupSelect.addEventListener("change", (e) => {
-      // Vor dem Wechsel speichern wir eventuell den aktuellen Zustand – 
-      // in diesem Beispiel geschieht das über die Event-Listener der Eingaben.
+      // Vor dem Wechsel wird der aktuelle Zustand in Firebase gespeichert (über die jeweiligen Event-Listener)
       selectedGroup = e.target.value;
       renderDetailedView(selectedGroup);
     });
     
-    /******** Funktionen zur Generierung der Original-Oberfläche ********/
-    // Erzeugt den HTML-Code für eine Tabelle mit 5 Zeilen (Werfer 1, …, Ersatz 1) und 15 Spalten (Checkboxen)
+    /******** Funktionen zur Erzeugung der Original-Oberfläche ********/
+    // Erzeugt den HTML-Code für eine vollständige Tabelle mit 5 Zeilen (Werfer 1 bis Ersatz 1) und 15 Spalten (Checkboxen)
     function getFullTableHTML(prefix) {
       const rows = ["Werfer 1", "Werfer 2", "Werfer 3", "Werfer 4", "Ersatz 1"];
       let html = "<table><thead><tr><th>Werfer</th>";
@@ -113,7 +112,6 @@
       html += "</tr></thead><tbody>";
       for (let r = 0; r < rows.length; r++) {
         html += "<tr>";
-        // Textfeld für den Namen
         html += `<td><input type="text" id="_name" placeholder=""></td>`;
         for (let c = 1; c <= 15; c++) {
           html += `<td><input type="checkbox" id="_cb_"></td>`;
@@ -124,7 +122,7 @@
       return html;
     }
     
-    // Erzeugt den HTML-Code der detaillierten Ansicht für eine Gruppe
+    // Erzeugt den HTML-Code der detaillierten Ansicht für eine Gruppe (Original-Oberfläche)
     function getDetailedHTML(groupId, groupName) {
       return `
         <h2> – Detaillierte Ansicht</h2>
@@ -158,18 +156,17 @@
       `;
     }
     
-    // Rendert die detaillierte Ansicht in den Container
+    // Rendert die detaillierte Ansicht im Container
     function renderDetailedView(groupId) {
       const groupName = groups.find(g => g.id === groupId).name;
       scoreboardContainer.innerHTML = getDetailedHTML(groupId, groupName);
       setupDetailedListeners(groupId);
-      // Wenn bereits ein Zustand für diese Gruppe existiert, UI updaten
       if (groupStates[groupId]) {
         updateDetailedUI(groupId, groupStates[groupId]);
       }
     }
     
-    /******** Event-Listener und Speichern der Zustände in der detaillierten Ansicht ********/
+    /******** Event-Listener und Speichern in der detaillierten Ansicht ********/
     function setupDetailedListeners(groupId) {
       // OBEN
       const topTeamToggleBtn = document.getElementById(`_topTeamToggleBtn`);
@@ -196,7 +193,8 @@
       let bottomNames = [];
       let bottomCheckboxes = [];
       for (let r = 0; r < 5; r++) {
-        bottomNames.push(document.getElementById(`_name`)); // Annahme: Die unteren 5 Zeilen folgen unmittelbar
+        // Annahme: Die unteren 5 Zeilen erhalten die IDs der zweiten Hälfte (z. B. index 5 bis 9)
+        bottomNames.push(document.getElementById(`_name`));
         let row = [];
         for (let c = 1; c <= 15; c++) {
           row.push(document.getElementById(`_cb_`));
@@ -223,14 +221,12 @@
             checkboxes: bottomCheckboxes.map(row => row.map(cb => cb.checked))
           }
         };
-        // Speichern des Zustands in Firebase unter: competitions/{compId}/groups/{groupId}
         db.ref('competitions/' + compId + '/groups/' + groupId).set(state);
       }
       
       topTeamToggleBtn.addEventListener("click", () => {
         const topTeam = document.getElementById(`_topTeam`);
         const bottomTeam = document.getElementById(`_bottomTeam`);
-        // Umschalten der Farben: Wir setzen topTeam rot/green und bottomTeam entsprechend um
         if (topTeam.classList.contains("red")) {
           topTeam.classList.remove("red");
           topTeam.classList.add("green");
@@ -285,7 +281,6 @@
       topMeterInput.addEventListener("input", calculateResult);
       bottomMeterInput.addEventListener("input", calculateResult);
       
-      // Alle Eingaben speichern
       topNames.forEach(input => input.addEventListener("input", saveState));
       bottomNames.forEach(input => input.addEventListener("input", saveState));
       topCheckboxes.forEach(row => row.forEach(cb => cb.addEventListener("change", saveState)));
@@ -308,7 +303,6 @@
           meterDiff = -leftover;
         }
       
-        // Zusätzliche Anpassung: Führungsschalter
         const topTeam = document.getElementById(`_topTeam`);
         const bottomTeam = document.getElementById(`_bottomTeam`);
         if (bottomTeam.classList.contains("green") && schoeetDiff > 0) {
@@ -361,7 +355,7 @@
       }
     }
     
-    /******** Firebase Live-Listener und Summary ********/
+    /******** Firebase-Live-Listener und Summary ********/
     function setupFirebaseListeners() {
       groups.forEach(g => {
         db.ref('competitions/' + compId + '/groups/' + g.id).on('value', snapshot => {
