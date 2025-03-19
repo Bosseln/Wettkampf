@@ -1,44 +1,54 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Wettkampf – Gruppe auswählen</title>
+  <meta charset="UTF-8" />
+  <title>Scoreboard – Boßel Wettkampfrechner</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Optionale PWA-Tags (falls benötigt) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+  
+  <!-- Firebase SDKs (Compat-Versionen) -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
+  
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    .container {
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin-bottom: 20px;
-    }
-    label {
-      font-weight: bold;
-    }
-    select {
-      padding: 5px;
-      font-size: 1em;
-      margin-top: 10px;
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1, h2, h3 { margin: 10px 0; }
+    .container { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; }
+    select, input, button { margin: 5px; padding: 5px; }
+    .table-container { overflow-x: auto; margin-top: 10px; }
+    table { border-collapse: collapse; width: 100%; max-width: 900px; }
+    th, td { border: 1px solid #000; padding: 5px; text-align: center; }
+    .team-header { color: #fff; padding: 10px; margin-bottom: 5px; }
+    .red { background-color: red; }
+    .green { background-color: green; }
+    .score-area { margin: 10px 0; font-size: 1.1em; }
+    .resultSummary { font-size: 0.9em; margin-top: 20px; }
+    .groupHeader { font-weight: bold; margin-top: 20px; }
+    .toggleBtn { min-width: 80px; }
+    /* Style für die Summary-Boxen */
+    .summary-box {
+      padding: 10px;
+      margin-bottom: 10px;
+      color: #fff;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
-  <h1>Wettkampf erstellt</h1>
+  <h1>Scoreboard – Boßel Wettkampfrechner</h1>
   
-  <!-- Anzeige von Wettkampfname und Wettkampf-ID -->
+  <!-- Anzeige der Wettkampf-ID -->
   <div class="container">
-    <p><strong>Wettkampfname:</strong> <span id="compNameDisplay"></span></p>
-    <p><strong>Wettkampf-ID:</strong> <span id="compIdDisplay"></span></p>
-    <p>Teile diesen Screenshot, damit andere dem Wettkampf beitreten können.</p>
+    <strong>Wettkampf-ID:</strong> <span id="compIdDisplay"></span>
   </div>
   
-  <!-- Dropdown zur Auswahl der Gruppe -->
+  <!-- Dropdown zur Gruppenauswahl -->
   <div class="container">
-    <label for="groupSelect">Gruppe auswählen:</label><br>
+    <label for="groupSelect">Gruppe auswählen:</label>
     <select id="groupSelect">
-      <option value="auswahl">Auswahl</option>
       <option value="holz1">Holz 1</option>
       <option value="holz2">Holz 2</option>
       <option value="gummi1">Gummi 1</option>
@@ -46,38 +56,359 @@
     </select>
   </div>
   
+  <!-- Container für die detaillierte Original-Oberfläche der aktuell gewählten Gruppe -->
+  <div class="container" id="scoreboardContainer"></div>
+  
+  <!-- Zusammenfassung aller Gruppen -->
+  <div class="container resultSummary" id="summaryContainer"></div>
+  
   <script>
-    // Lese Wettkampf-ID und Wettkampfname aus der URL, z.B. ?compId=ABC123&compName=MeinWettkampf
-    const params = new URLSearchParams(window.location.search);
-    const compId = params.get("compId");
-    const compName = params.get("compName");
+    /******** Firebase-Konfiguration ********/
+    const firebaseConfig = {
+      apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
+      authDomain: "wettkampf-f6f92.firebaseapp.com",
+      databaseURL: "https://wettkampf-f6f92-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "wettkampf-f6f92",
+      storageBucket: "wettkampf-f6f92.firebasestorage.app",
+      messagingSenderId: "161090727748",
+      appId: "1:161090727748:web:33f4ff7ce4f6e5c08f7111",
+      measurementId: "G-WCV2950HGK"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
     
-    if (!compId || !compName) {
-      alert("Fehlende Wettkampf-Daten!");
+    /******** Wettkampf-ID aus der URL lesen ********/
+    function getCompIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("compId");
+    }
+    const compId = getCompIdFromUrl();
+    if (!compId) { alert("Keine Wettkampf-ID gefunden!"); }
+    document.getElementById("compIdDisplay").textContent = compId;
+    
+    /******** Definition der Gruppen ********/
+    const groups = [
+      { id: "holz1", name: "Holz 1" },
+      { id: "holz2", name: "Holz 2" },
+      { id: "gummi1", name: "Gummi 1" },
+      { id: "gummi2", name: "Gummi 2" }
+    ];
+    let groupStates = {};  // Speichert die Zustände der einzelnen Gruppen
+    let selectedGroup = "holz1";  // Standardmäßig "Holz 1"
+    
+    /******** DOM-Elemente ********/
+    const groupSelect = document.getElementById("groupSelect");
+    const scoreboardContainer = document.getElementById("scoreboardContainer");
+    const summaryContainer = document.getElementById("summaryContainer");
+    
+    // Dropdown initialisieren und bei Änderung den Zustand speichern
+    let currentSaveState = null;  // Globale Variable für die aktuelle Save-Funktion
+    groupSelect.value = selectedGroup;
+    groupSelect.addEventListener("change", (e) => {
+      if (typeof currentSaveState === "function") {
+        currentSaveState(); // Speichert den aktuellen Zustand der gerade angezeigten Gruppe
+      }
+      selectedGroup = e.target.value;
+      renderDetailedView(selectedGroup);
+    });
+    
+    /******** Funktionen zur Erzeugung der Original-Oberfläche ********/
+    // Erzeugt den HTML-Code für eine vollständige Tabelle mit 5 Zeilen (Werfer 1 bis Ersatz 1) und 15 Spalten (Checkboxen)
+    function getFullTableHTML(prefix) {
+      const rows = ["Werfer 1", "Werfer 2", "Werfer 3", "Werfer 4", "Ersatz 1"];
+      let html = "<table><thead><tr><th>Werfer</th>";
+      for (let i = 1; i <= 15; i++) {
+        html += `<th></th>`;
+      }
+      html += "</tr></thead><tbody>";
+      for (let r = 0; r < rows.length; r++) {
+        html += "<tr>";
+        html += `<td><input type="text" id="_name" placeholder=""></td>`;
+        for (let c = 1; c <= 15; c++) {
+          html += `<td><input type="checkbox" id="_cb_"></td>`;
+        }
+        html += "</tr>";
+      }
+      html += "</tbody></table>";
+      return html;
     }
     
-    // Zeige die Werte an
-    document.getElementById("compIdDisplay").textContent = compId;
-    document.getElementById("compNameDisplay").textContent = compName;
+    // Erzeugt den HTML-Code der detaillierten Ansicht für eine Gruppe (Original-Oberfläche)
+    function getDetailedHTML(groupId, groupName) {
+      return `
+        <h2> – Detaillierte Ansicht</h2>
+        <!-- Oberes Team -->
+        <div id="_topTeam" class="team-header red">
+          <button class="toggleBtn" id="_topTeamToggleBtn">Führung</button>
+          <input type="text" id="_topVerein" placeholder="Verein eintragen..." />
+          <button id="_topSchoetBtn">Schöööööt!</button>
+          &nbsp;Schoet: <span id="_topSchoetDisplay">0</span>
+          &nbsp;Meter: <input type="number" id="_topMeterInput" value="0" />
+        </div>
+        <div class="table-container">
+          
+        </div>
+        <!-- Unteres Team -->
+        <div id="_bottomTeam" class="team-header green">
+          <button class="toggleBtn" id="_bottomTeamToggleBtn">Führung</button>
+          <input type="text" id="_bottomVerein" placeholder="Verein eintragen..." />
+          <button id="_bottomSchoetBtn">Schöööööt!</button>
+          &nbsp;Schoet: <span id="_bottomSchoetDisplay">0</span>
+          &nbsp;Meter: <input type="number" id="_bottomMeterInput" value="0" />
+        </div>
+        <div class="table-container">
+          
+        </div>
+        <!-- Ergebnis-Anzeige -->
+        <div class="score-area">
+          <strong>Ergebnis Schoet:</strong> <span id="_ergebnisSchoet">0.0</span><br />
+          <strong>Ergebnis Meter:</strong> <span id="_ergebnisMeter">0</span>
+        </div>
+      `;
+    }
     
-    // Beim Wechseln des Dropdowns: Weiterleitung zur entsprechenden Scoreboard-Seite
-    document.getElementById("groupSelect").addEventListener("change", function() {
-      const group = this.value;
-      if (group === "auswahl") return; // Keine Aktion bei "Auswahl"
-      let targetFile = "";
-      if (group === "holz1") {
-        targetFile = "scoreboardholz1.html";
-      } else if (group === "holz2") {
-        targetFile = "scoreboardholz2.html";
-      } else if (group === "gummi1") {
-        targetFile = "scoreboardgummi1.html";
-      } else if (group === "gummi2") {
-        targetFile = "scoreboardgummi2.html";
+    // Rendert die detaillierte Ansicht in den Container
+    function renderDetailedView(groupId) {
+      const groupName = groups.find(g => g.id === groupId).name;
+      scoreboardContainer.innerHTML = getDetailedHTML(groupId, groupName);
+      setupDetailedListeners(groupId);
+      if (groupStates[groupId]) {
+        updateDetailedUI(groupId, groupStates[groupId]);
       }
-      // Weiterleitung mit compId und compName als URL-Parameter
-      window.location.href = targetFile + "?compId=" + encodeURIComponent(compId) +
-                               "&compName=" + encodeURIComponent(compName);
-    });
+    }
+    
+    /******** Event-Listener und Speichern in der detaillierten Ansicht ********/
+    function setupDetailedListeners(groupId) {
+      // OBEN
+      const topTeamToggleBtn = document.getElementById(`_topTeamToggleBtn`);
+      const topVerein = document.getElementById(`_topVerein`);
+      const topSchoetBtn = document.getElementById(`_topSchoetBtn`);
+      const topSchoetDisplay = document.getElementById(`_topSchoetDisplay`);
+      const topMeterInput = document.getElementById(`_topMeterInput`);
+      let topNames = [];
+      let topCheckboxes = [];
+      for (let r = 0; r < 5; r++) {
+        topNames.push(document.getElementById(`_name`));
+        let row = [];
+        for (let c = 1; c <= 15; c++) {
+          row.push(document.getElementById(`_cb_`));
+        }
+        topCheckboxes.push(row);
+      }
+      // UNTEN
+      const bottomTeamToggleBtn = document.getElementById(`_bottomTeamToggleBtn`);
+      const bottomVerein = document.getElementById(`_bottomVerein`);
+      const bottomSchoetBtn = document.getElementById(`_bottomSchoetBtn`);
+      const bottomSchoetDisplay = document.getElementById(`_bottomSchoetDisplay`);
+      const bottomMeterInput = document.getElementById(`_bottomMeterInput`);
+      let bottomNames = [];
+      let bottomCheckboxes = [];
+      for (let r = 0; r < 5; r++) {
+        // Die unteren 5 Zeilen erhalten hier die IDs mit Index r+5
+        bottomNames.push(document.getElementById(`_name`));
+        let row = [];
+        for (let c = 1; c <= 15; c++) {
+          row.push(document.getElementById(`_cb_`));
+        }
+        bottomCheckboxes.push(row);
+      }
+      
+      // Speichern soll nur erfolgen, wenn sich das Ergebnis ändert:
+      function saveState() {
+        const state = {
+          topTeam: {
+            verein: topVerein.value,
+            schoet: Number(topSchoetDisplay.textContent),
+            meter: Number(topMeterInput.value),
+            leadership: document.getElementById(`_topTeam`).classList.contains("green"),
+            names: topNames.map(input => input.value),
+            checkboxes: topCheckboxes.map(row => row.map(cb => cb.checked))
+          },
+          bottomTeam: {
+            verein: bottomVerein.value,
+            schoet: Number(bottomSchoetDisplay.textContent),
+            meter: Number(bottomMeterInput.value),
+            leadership: document.getElementById(`_bottomTeam`).classList.contains("green"),
+            names: bottomNames.map(input => input.value),
+            checkboxes: bottomCheckboxes.map(row => row.map(cb => cb.checked))
+          }
+        };
+        db.ref('competitions/' + compId + '/groups/' + groupId).set(state);
+      }
+      
+      // Speichern beim Drücken von Schöööööt! und beim Wechseln der Führung:
+      topTeamToggleBtn.addEventListener("click", () => {
+        const topTeam = document.getElementById(`_topTeam`);
+        const bottomTeam = document.getElementById(`_bottomTeam`);
+        if (topTeam.classList.contains("red")) {
+          topTeam.classList.remove("red");
+          topTeam.classList.add("green");
+        } else {
+          topTeam.classList.remove("green");
+          topTeam.classList.add("red");
+        }
+        if (bottomTeam.classList.contains("green")) {
+          bottomTeam.classList.remove("green");
+          bottomTeam.classList.add("red");
+        } else {
+          bottomTeam.classList.remove("red");
+          bottomTeam.classList.add("green");
+        }
+        calculateResult();
+      });
+      
+      bottomTeamToggleBtn.addEventListener("click", () => {
+        const topTeam = document.getElementById(`_topTeam`);
+        const bottomTeam = document.getElementById(`_bottomTeam`);
+        if (bottomTeam.classList.contains("green")) {
+          bottomTeam.classList.remove("green");
+          bottomTeam.classList.add("red");
+        } else {
+          bottomTeam.classList.remove("red");
+          bottomTeam.classList.add("green");
+        }
+        if (topTeam.classList.contains("red")) {
+          topTeam.classList.remove("red");
+          topTeam.classList.add("green");
+        } else {
+          topTeam.classList.remove("green");
+          topTeam.classList.add("red");
+        }
+        calculateResult();
+      });
+      
+      topSchoetBtn.addEventListener("click", () => {
+        let count = Number(topSchoetDisplay.textContent);
+        count++;
+        topSchoetDisplay.textContent = count;
+        calculateResult();
+      });
+      
+      bottomSchoetBtn.addEventListener("click", () => {
+        let count = Number(bottomSchoetDisplay.textContent);
+        count++;
+        bottomSchoetDisplay.textContent = count;
+        calculateResult();
+      });
+      
+      topMeterInput.addEventListener("input", calculateResult);
+      bottomMeterInput.addEventListener("input", calculateResult);
+      
+      // Speichere keine Änderungen bei Namenseingabe oder Checkboxen, sondern nur beim Ergebnis
+      function calculateResult() {
+        let meterDiff = parseInt(topMeterInput.value) - parseInt(bottomMeterInput.value);
+        let schoeetDiff = Number(topSchoetDisplay.textContent) - Number(bottomSchoetDisplay.textContent);
+        let gender = document.getElementById("genderSelect").value;
+        let threshold = (gender === "men") ? 150 : 100;
+        let absMeterDiff = Math.abs(meterDiff);
+        let extraSchoet = Math.floor(absMeterDiff / threshold);
+      
+        if (meterDiff > 0) {
+          schoeetDiff += extraSchoet;
+          meterDiff = meterDiff % threshold;
+        } else if (meterDiff < 0) {
+          schoeetDiff -= extraSchoet;
+          let leftover = absMeterDiff % threshold;
+          meterDiff = -leftover;
+        }
+      
+        const topTeam = document.getElementById(`_topTeam`);
+        const bottomTeam = document.getElementById(`_bottomTeam`);
+        if (bottomTeam.classList.contains("green") && schoeetDiff > 0) {
+          schoeetDiff -= 0.5;
+        } else if (topTeam.classList.contains("green") && schoeetDiff < 0) {
+          schoeetDiff += 0.5;
+        }
+      
+        document.getElementById(`_ergebnisSchoet`).textContent = schoeetDiff.toFixed(1);
+        document.getElementById(`_ergebnisMeter`).textContent = meterDiff.toFixed(0);
+        saveState();
+      }
+      
+      // Setze die globale Save-Funktion für den Gruppenwechsel
+      currentSaveState = saveState;
+    }
+    
+    function updateDetailedUI(groupId, state) {
+      if (!state) return;
+      document.getElementById(`_topVerein`).value = state.topTeam.verein;
+      document.getElementById(`_topSchoetDisplay`).textContent = state.topTeam.schoet;
+      document.getElementById(`_topMeterInput`).value = state.topTeam.meter;
+      const topTeam = document.getElementById(`_topTeam`);
+      if (state.topTeam.leadership) {
+        topTeam.classList.add("green");
+        topTeam.classList.remove("red");
+      } else {
+        topTeam.classList.add("red");
+        topTeam.classList.remove("green");
+      }
+      for (let r = 0; r < 5; r++) {
+        document.getElementById(`_name`).value = state.topTeam.names[r] || "";
+        for (let c = 1; c <= 15; c++) {
+          document.getElementById(`_cb_`).checked = state.topTeam.checkboxes[r][c-1];
+        }
+      }
+      document.getElementById(`_bottomVerein`).value = state.bottomTeam.verein;
+      document.getElementById(`_bottomSchoetDisplay`).textContent = state.bottomTeam.schoet;
+      document.getElementById(`_bottomMeterInput`).value = state.bottomTeam.meter;
+      const bottomTeam = document.getElementById(`_bottomTeam`);
+      if (state.bottomTeam.leadership) {
+        bottomTeam.classList.add("green");
+        bottomTeam.classList.remove("red");
+      } else {
+        bottomTeam.classList.add("red");
+        bottomTeam.classList.remove("green");
+      }
+      for (let r = 0; r < 5; r++) {
+        document.getElementById(`_name`).value = state.bottomTeam.names[r] || "";
+        for (let c = 1; c <= 15; c++) {
+          document.getElementById(`_cb_`).checked = state.bottomTeam.checkboxes[r][c-1];
+        }
+      }
+    }
+    
+    /******** Firebase-Live-Listener und Summary ********/
+    function setupFirebaseListeners() {
+      groups.forEach(g => {
+        db.ref('competitions/' + compId + '/groups/' + g.id).on('value', snapshot => {
+          const state = snapshot.val();
+          if (state) {
+            groupStates[g.id] = state;
+            if (g.id === selectedGroup) {
+              updateDetailedUI(g.id, state);
+            }
+            updateSummary();
+          }
+        });
+      });
+    }
+    
+    function updateSummary() {
+      let html = "<div class='groupHeader'>Ergebnisse aller Gruppen:</div>";
+      groups.forEach(g => {
+        if (groupStates[g.id]) {
+          const state = groupStates[g.id];
+          // Wir nehmen hier das Schoet-Ergebnis des oberen Teams
+          const topSchoet = state.topTeam.schoet;
+          // Farbe des oberen Teams: grün wenn Führung (true), sonst rot
+          const topColor = state.topTeam.leadership ? "green" : "red";
+          html += `<div class="summary-box" style="background-color:;">
+                    <strong></strong><br>
+                    Top Schoet: 
+                   </div>`;
+        } else {
+          html += `<div class="summary-box" style="background-color:gray;">
+                    <strong></strong><br>
+                    keine Daten
+                   </div>`;
+        }
+      });
+      summaryContainer.innerHTML = html;
+    }
+    
+    /******** Initialisierung ********/
+    setupFirebaseListeners();
+    renderDetailedView(selectedGroup);
   </script>
 </body>
 </html>
