@@ -15,6 +15,11 @@
       cursor: pointer;
       text-align: center;
     }
+    /* Gruppennamen in den Boxen: fett und schwarz */
+    .groupBox strong {
+      color: black;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -68,27 +73,28 @@
     
     const groupBoxesContainer = document.getElementById("groupsContainer");
     
-    // Erstelle für jede Gruppe eine Box, in der der Gruppenname und das Ergebnis angezeigt werden
+    // Erstelle für jede Gruppe eine Box, in der der Gruppenname und das Ergebnis angezeigt werden.
     function updateGroupBoxes() {
       // Leere den Container zunächst
       groupBoxesContainer.innerHTML = "<h2>Gruppe auswählen</h2>";
       
       groups.forEach(g => {
-        // Lese die Daten der Gruppe aus Firebase (unter dem Pfad competitions/{compId}/groups/{groupId}/scoreboard/topTeam)
+        // Lese die Daten der Gruppe aus Firebase (Pfad: competitions/{compId}/groups/{groupId}/scoreboard/topTeam)
         db.ref('competitions/' + compId + '/groups/' + g.id + '/scoreboard/topTeam').once('value')
           .then(snapshot => {
             const data = snapshot.val();
             const result = data && data.schoet ? data.schoet : 0;
-            // Bestimme die Hintergrundfarbe anhand der Führung: grün, wenn leadership true, sonst rot
-            const bgColor = data && data.leadership ? "green" : "red";
+            // Bestimme die Hintergrundfarbe: grün wenn leadership true, sonst rot; Fallback: grau
+            const bgColor = data && typeof data.leadership === "boolean" ? (data.leadership ? "green" : "red") : "gray";
             
             // Erzeuge die Box
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = bgColor;
+            // Anstatt "Top Schoet" soll "Ergebnis" angezeigt werden.
             box.innerHTML = `<strong></strong><br>Ergebnis: `;
             box.addEventListener("click", () => {
-              // Weiterleitung zur entsprechenden Scoreboard-Seite mit compId und compName
+              // Weiterleitung zur entsprechenden Scoreboard-Seite mit compId und compName als Parameter
               window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
                                       "&compName=" + encodeURIComponent(compName);
             });
