@@ -27,10 +27,10 @@
 <body>
   <h1>Wettkampf erstellt</h1>
   
-  <!-- Anzeige der Wettkampf-ID und des Passworts -->
+  <!-- Anzeige von Wettkampfname und Wettkampf-ID -->
   <div class="container">
+    <p><strong>Wettkampfname:</strong> <span id="compNameDisplay"></span></p>
     <p><strong>Wettkampf-ID:</strong> <span id="compIdDisplay"></span></p>
-    <p><strong>Passwort:</strong> <span id="compPwDisplay"></span></p>
     <p>Teile diesen Screenshot, damit andere dem Wettkampf beitreten können.</p>
   </div>
   
@@ -47,18 +47,20 @@
   </div>
   
   <script>
-    // Lese Wettkampf-ID und Passwort aus der URL (z.B. ?compId=ABC123&compPw=PASS)
+    // Lese Wettkampf-ID und Wettkampfname aus der URL, z.B. ?compId=ABC123&compName=MeinWettkampf
     const params = new URLSearchParams(window.location.search);
     const compId = params.get("compId");
-    const compPw = params.get("compPw");
+    const compName = params.get("compName");
     
-    if (!compId) {
-      alert("Fehlende Wettkampf-ID!");
+    if (!compId || !compName) {
+      alert("Fehlende Wettkampf-Daten!");
     }
-    document.getElementById("compIdDisplay").textContent = compId;
-    document.getElementById("compPwDisplay").textContent = compPw ? compPw : "(nicht vorhanden)";
     
-    // Beim Ändern des Dropdowns: Wenn eine Gruppe gewählt wird, weiterleiten
+    // Zeige die Werte an
+    document.getElementById("compIdDisplay").textContent = compId;
+    document.getElementById("compNameDisplay").textContent = compName;
+    
+    // Beim Wechseln des Dropdowns: Weiterleitung zur entsprechenden Scoreboard-Seite
     document.getElementById("groupSelect").addEventListener("change", function() {
       const group = this.value;
       if (group === "auswahl") return; // Keine Aktion bei "Auswahl"
@@ -72,8 +74,9 @@
       } else if (group === "gummi2") {
         targetFile = "scoreboardgummi2.html";
       }
-      // Weiterleitung zur jeweiligen Scoreboard-Seite mit beiden Parametern
-      window.location.href = targetFile + "?compId=" + encodeURIComponent(compId) + "&compPw=" + encodeURIComponent(compPw);
+      // Weiterleitung mit compId und compName als URL-Parameter
+      window.location.href = targetFile + "?compId=" + encodeURIComponent(compId) +
+                               "&compName=" + encodeURIComponent(compName);
     });
   </script>
 </body>
