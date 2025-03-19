@@ -2,67 +2,81 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Wettkampf erstellen / beitreten</title>
+  <title>Wettkampf – Gruppe auswählen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    .container { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
-    label { font-weight: bold; }
-    input, button { margin: 5px; padding: 5px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .container {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: bold;
+    }
+    select {
+      padding: 5px;
+      font-size: 1em;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
-  <h1>Wettkampf erstellen / beitreten</h1>
+  <h1>Wettkampf erstellt</h1>
   
-  <!-- Bereich Wettkampf erstellen -->
+  <!-- Anzeige von Wettkampfname und Wettkampf-ID -->
   <div class="container">
-    <h2>Wettkampf erstellen</h2>
-    <label for="compName">Wettkampfname:</label>
-    <input type="text" id="compName" placeholder="Wettkampfname"><br>
-    <button id="createCompBtn">Wettkampf erstellen</button>
+    <p><strong>Wettkampfname:</strong> <span id="compNameDisplay"></span></p>
+    <p><strong>Wettkampf-ID:</strong> <span id="compIdDisplay"></span></p>
+    <p>Teile diesen Screenshot, damit andere dem Wettkampf beitreten können.</p>
   </div>
   
-  <!-- Bereich Wettkampf beitreten -->
+  <!-- Dropdown zur Auswahl der Gruppe -->
   <div class="container">
-    <h2>Wettkampf beitreten</h2>
-    <label for="joinCompId">Wettkampf-ID:</label>
-    <input type="text" id="joinCompId" placeholder="Wettkampf-ID"><br>
-    <button id="joinCompBtn">Beitreten</button>
+    <label for="groupSelect">Gruppe auswählen:</label><br>
+    <select id="groupSelect">
+      <option value="auswahl">Auswahl</option>
+      <option value="holz1">Holz 1</option>
+      <option value="holz2">Holz 2</option>
+      <option value="gummi1">Gummi 1</option>
+      <option value="gummi2">Gummi 2</option>
+    </select>
   </div>
   
   <script>
-    // Funktion zur Generierung einer zufälligen Wettkampf-ID (6 Zeichen)
-    function generateCompId(length) {
-      let result = '';
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return result;
+    // Lese Wettkampf-ID und Wettkampfname aus der URL, z.B. ?compId=ABC123&compName=MeinWettkampf
+    const params = new URLSearchParams(window.location.search);
+    const compId = params.get("compId");
+    const compName = params.get("compName");
+    
+    if (!compId || !compName) {
+      alert("Fehlende Wettkampfdaten!");
     }
     
-    // Erstellen eines Wettkampfs
-    document.getElementById("createCompBtn").addEventListener("click", () => {
-      const compName = document.getElementById("compName").value.trim();
-      if (!compName) {
-        alert("Bitte einen Wettkampfname eingeben.");
-        return;
-      }
-      const compId = generateCompId(6);
-      // Weiterleitung an scoreboard.html mit compId und compName als Parameter
-      window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) +
-                               "&compName=" + encodeURIComponent(compName);
-    });
+    // Zeige die Werte an
+    document.getElementById("compIdDisplay").textContent = compId;
+    document.getElementById("compNameDisplay").textContent = compName;
     
-    // Beitreten eines bestehenden Wettkampfs
-    document.getElementById("joinCompBtn").addEventListener("click", () => {
-      const joinCompId = document.getElementById("joinCompId").value.trim();
-      if (!joinCompId) {
-        alert("Bitte eine Wettkampf-ID eingeben.");
-        return;
+    // Beim Wechseln des Dropdowns: Weiterleitung zur entsprechenden Scoreboard-Seite
+    document.getElementById("groupSelect").addEventListener("change", function() {
+      const group = this.value;
+      if (group === "auswahl") return; // Keine Aktion bei "Auswahl"
+      let targetFile = "";
+      if (group === "holz1") {
+        targetFile = "scoreboardholz1.html";
+      } else if (group === "holz2") {
+        targetFile = "scoreboardholz2.html";
+      } else if (group === "gummi1") {
+        targetFile = "scoreboardgummi1.html";
+      } else if (group === "gummi2") {
+        targetFile = "scoreboardgummi2.html";
       }
-      // Weiterleitung an scoreboard.html mit der eingegebenen Wettkampf-ID
-      window.location.href = "scoreboard.html?compId=" + encodeURIComponent(joinCompId);
+      // Weiterleitung zur Scoreboard-Seite mit compId und compName als Parameter
+      window.location.href = targetFile + "?compId=" + encodeURIComponent(compId) +
+                               "&compName=" + encodeURIComponent(compName);
     });
   </script>
 </body>
