@@ -15,13 +15,6 @@
       cursor: pointer;
       text-align: center;
     }
-    /* Der Gruppenname wird oben in der Box fett, in weiß und in 1.2em Größe angezeigt */
-    .groupBox .groupName {
-      font-weight: bold;
-      font-size: 1.2em;
-      margin-bottom: 5px;
-      color: #fff;
-    }
     button.refreshBtn {
       padding: 10px 15px;
       font-size: 1em;
@@ -68,7 +61,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Lese compId und compName aus der URL, z.B. ?compId=ABC123&compName=MeinWettkampf
+    // Lese compId und compName aus der URL (z. B. ?compId=ABC123&compName=MeinWettkampf)
     const params = new URLSearchParams(window.location.search);
     const compId = params.get("compId") || "Keine ID";
     const compName = params.get("compName") || "Kein Name";
@@ -85,17 +78,16 @@
     
     const groupBoxesContainer = document.getElementById("groupsContainer");
     
-    // Für jede Gruppe wird eine Box erstellt, in der oben der Gruppenname (in der Formatierung wie der alte "Ergebnis:"-Text) und darunter der Wert (resultSchoet) angezeigt wird.
+    // Erstelle für jede Gruppe eine Box, in der oben der Gruppenname (mit Inline-Stilen) und darunter der Wert (resultSchoet) angezeigt wird.
     function updateGroupBoxes() {
       groupBoxesContainer.innerHTML = "<h2>Gruppe auswählen</h2>";
       
       groups.forEach(g => {
-        // Hier laden wir den gesamten Zustand der Gruppe, um den berechneten schoeetDiff (resultSchoet) zu erhalten
         db.ref('competitions/' + compId + '/groups/' + g.id + '/scoreboard').once('value')
           .then(snapshot => {
             const data = snapshot.val() || {};
             const result = data.resultSchoet || 0;
-            // Bestimme die Hintergrundfarbe anhand der Führung (falls vorhanden)
+            // Hintergrundfarbe anhand der Führung (falls vorhanden)
             const bgColor = (typeof data.topTeam?.leadership === "boolean")
               ? (data.topTeam.leadership ? "green" : "red")
               : "gray";
@@ -103,8 +95,8 @@
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = bgColor;
-            // Oben in der Box soll nun der jeweilige Gruppenname stehen – in der gleichen Größe und Farbe wie der frühere "Ergebnis:"-Text
-            box.innerHTML = `<div class="groupName"></div><div></div>`;
+            // Hier setzen wir den Gruppennamen (wie der frühere "Ergebnis:"-Text) oben und den Zahlenwert darunter
+            box.innerHTML = `<div style="font-weight: bold; font-size: 1.2em; margin-bottom: 5px; color: #fff;"></div><div style="color: #fff;"></div>`;
             box.addEventListener("click", () => {
               window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
                                       "&compName=" + encodeURIComponent(compName);
@@ -116,7 +108,7 @@
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = "gray";
-            box.innerHTML = `<div class="groupName"></div><div>0</div>`;
+            box.innerHTML = `<div style="font-weight: bold; font-size: 1.2em; margin-bottom: 5px; color: #fff;"></div><div style="color: #fff;">0</div>`;
             box.addEventListener("click", () => {
               window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
                                       "&compName=" + encodeURIComponent(compName);
@@ -132,7 +124,7 @@
     // Automatische Aktualisierung alle 60 Sekunden
     setInterval(updateGroupBoxes, 60000);
     
-    // Aktualisieren-Button: Aktualisiert die Gruppenboxen sofort
+    // Button zum sofortigen Aktualisieren
     document.getElementById("refreshBtn").addEventListener("click", updateGroupBoxes);
   </script>
 </body>
