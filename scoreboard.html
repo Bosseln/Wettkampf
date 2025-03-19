@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Scoreboard – Boßel Wettkampfrechner</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Optionale PWA-Tags (Manifest, Apple-Touch-Icon) -->
+  <!-- Optionale PWA-Tags -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
@@ -86,8 +86,8 @@
       { id: "gummi1", name: "Gummi 1" },
       { id: "gummi2", name: "Gummi 2" }
     ];
-    let groupStates = {};  // Hier werden die Zustände der einzelnen Gruppen gespeichert
-    let selectedGroup = "holz1";  // Standardmäßig "Holz 1"
+    let groupStates = {}; // Hier werden die Zustände aller Gruppen gespeichert
+    let selectedGroup = "holz1"; // Standardmäßig "Holz 1"
     
     /******** DOM-Elemente ********/
     const groupSelect = document.getElementById("groupSelect");
@@ -96,10 +96,17 @@
     
     groupSelect.value = selectedGroup;
     groupSelect.addEventListener("change", (e) => {
-      // Vor dem Wechsel wird der aktuelle Zustand in Firebase gespeichert (über die jeweiligen Event-Listener)
+      // Vor dem Wechsel speichern wir explizit den Zustand der aktuellen Ansicht,
+      // falls saveState in der aktuellen Ansicht definiert ist.
+      if (typeof currentSaveState === "function") {
+        currentSaveState();
+      }
       selectedGroup = e.target.value;
       renderDetailedView(selectedGroup);
     });
+    
+    /******** Globale Variable zum Speichern der aktuellen Save-Funktion ********/
+    let currentSaveState = null;
     
     /******** Funktionen zur Erzeugung der Original-Oberfläche ********/
     // Erzeugt den HTML-Code für eine vollständige Tabelle mit 5 Zeilen (Werfer 1 bis Ersatz 1) und 15 Spalten (Checkboxen)
@@ -156,7 +163,7 @@
       `;
     }
     
-    // Rendert die detaillierte Ansicht im Container
+    // Rendert die detaillierte Ansicht in den Container
     function renderDetailedView(groupId) {
       const groupName = groups.find(g => g.id === groupId).name;
       scoreboardContainer.innerHTML = getDetailedHTML(groupId, groupName);
@@ -166,7 +173,7 @@
       }
     }
     
-    /******** Event-Listener und Speichern in der detaillierten Ansicht ********/
+    /******** Event-Listener in der detaillierten Ansicht ********/
     function setupDetailedListeners(groupId) {
       // OBEN
       const topTeamToggleBtn = document.getElementById(`_topTeamToggleBtn`);
@@ -193,7 +200,7 @@
       let bottomNames = [];
       let bottomCheckboxes = [];
       for (let r = 0; r < 5; r++) {
-        // Annahme: Die unteren 5 Zeilen erhalten die IDs der zweiten Hälfte (z. B. index 5 bis 9)
+        // Annahme: Die unteren 5 Zeilen werden direkt hinter den oberen Zeilen angezeigt
         bottomNames.push(document.getElementById(`_name`));
         let row = [];
         for (let c = 1; c <= 15; c++) {
@@ -202,6 +209,8 @@
         bottomCheckboxes.push(row);
       }
       
+      // Wir möchten nur speichern, wenn ein Schöööööt!-Button gedrückt wird oder die Führung wechselt.
+      // Daher binden wir saveState nur an diese Ereignisse.
       function saveState() {
         const state = {
           topTeam: {
@@ -224,6 +233,7 @@
         db.ref('competitions/' + compId + '/groups/' + groupId).set(state);
       }
       
+      // Speichere bei Schöööööt! und Führungstoggle
       topTeamToggleBtn.addEventListener("click", () => {
         const topTeam = document.getElementById(`_topTeam`);
         const bottomTeam = document.getElementById(`_bottomTeam`);
@@ -278,14 +288,7 @@
         calculateResult();
       });
       
-      topMeterInput.addEventListener("input", calculateResult);
-      bottomMeterInput.addEventListener("input", calculateResult);
-      
-      topNames.forEach(input => input.addEventListener("input", saveState));
-      bottomNames.forEach(input => input.addEventListener("input", saveState));
-      topCheckboxes.forEach(row => row.forEach(cb => cb.addEventListener("change", saveState)));
-      bottomCheckboxes.forEach(row => row.forEach(cb => cb.addEventListener("change", saveState)));
-      
+      // In calculateResult() wird saveState() am Ende aufgerufen.
       function calculateResult() {
         let meterDiff = parseInt(topMeterInput.value) - parseInt(bottomMeterInput.value);
         let schoeetDiff = Number(topSchoetDisplay.textContent) - Number(bottomSchoetDisplay.textContent);
@@ -313,8 +316,12 @@
       
         document.getElementById(`_ergebnisSchoet`).textContent = schoeetDiff.toFixed(1);
         document.getElementById(`_ergebnisMeter`).textContent = meterDiff.toFixed(0);
+        // Speichern, weil sich das Ergebnis geändert hat
         saveState();
       }
+      
+      // Setze die globale Save-Funktion, damit beim Gruppwechsel der aktuelle Zustand gespeichert wird
+      currentSaveState = saveState;
     }
     
     function updateDetailedUI(groupId, state) {
