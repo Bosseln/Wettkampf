@@ -58,6 +58,13 @@
       margin-top: 20px;
       display: block;
     }
+    /* Zusätzliche Stile für den "Doch kein Schöt"-Button */
+    .removeSchoetBtn {
+      padding: 5px 10px;
+      font-size: 0.9em;
+      margin-left: 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -80,6 +87,7 @@
   <button id="topTeamToggleBtn">Führung</button>
   <input type="text" id="topVerein" placeholder="Verein eintragen..." />
   <button id="topSchoetBtn">Schöööööt!</button>
+  <button id="topRemoveSchoetBtn" class="removeSchoetBtn">Doch kein Schöt</button>
   &nbsp;Schoet: <span id="topSchoetDisplay">0</span>
   &nbsp;Meter: <input type="number" id="topMeterInput" value="0" />
 </div>
@@ -196,6 +204,7 @@
   <button id="bottomTeamToggleBtn">Führung</button>
   <input type="text" id="bottomVerein" placeholder="Verein eintragen..." />
   <button id="bottomSchoetBtn">Schöööööt!</button>
+  <button id="bottomRemoveSchoetBtn" class="removeSchoetBtn">Doch kein Schöt</button>
   &nbsp;Schoet: <span id="bottomSchoetDisplay">0</span>
   &nbsp;Meter: <input type="number" id="bottomMeterInput" value="0" />
 </div>
@@ -307,10 +316,14 @@
   </table>
 </div>
 
-<!-- Ergebnis-Anzeige -->
-<div class="score-area">
-  <strong>Ergebnis Schoet:</strong> <span id="ergebnisSchoet">0.0</span><br />
-  <strong>Ergebnis Meter:</strong> <span id="ergebnisMeter">0</span>
+<!-- Unteres Team (Führung) -->
+<div id="bottomTeam" class="team-header green">
+  <button id="bottomTeamToggleBtn">Führung</button>
+  <input type="text" id="bottomVerein" placeholder="Verein eintragen..." />
+  <button id="bottomSchoetBtn">Schöööööt!</button>
+  <button id="bottomRemoveSchoetBtn" class="removeSchoetBtn">Doch kein Schöt</button>
+  &nbsp;Schoet: <span id="bottomSchoetDisplay">0</span>
+  &nbsp;Meter: <input type="number" id="bottomMeterInput" value="0" />
 </div>
 
 <!-- Firebase SDKs -->
@@ -323,7 +336,7 @@
   // Für diese Datei ist die Gruppen-ID fest: gummi2
   const groupId = "gummi2";
   
-  // Firebase-Konfiguration – passe diese Werte ggf. an
+  // Firebase-Konfiguration – ggf. anpassen
   const firebaseConfig = {
     apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
     authDomain: "wettkampf-f6f92.firebaseapp.com",
@@ -346,6 +359,9 @@
   
   const topSchoetBtn = document.getElementById("topSchoetBtn");
   const bottomSchoetBtn = document.getElementById("bottomSchoetBtn");
+  
+  const topRemoveSchoetBtn = document.getElementById("topRemoveSchoetBtn");
+  const bottomRemoveSchoetBtn = document.getElementById("bottomRemoveSchoetBtn");
   
   const topSchoetDisplay = document.getElementById("topSchoetDisplay");
   const bottomSchoetDisplay = document.getElementById("bottomSchoetDisplay");
@@ -522,6 +538,24 @@
     bottomSchoet++;
     bottomSchoetDisplay.textContent = bottomSchoet;
     calculateResult();
+  });
+  
+  // Neuer Button: "Doch kein Schöt" oben
+  topRemoveSchoetBtn.addEventListener("click", () => {
+    if(topSchoet > 0){
+      topSchoet--;
+      topSchoetDisplay.textContent = topSchoet;
+      calculateResult();
+    }
+  });
+  
+  // Neuer Button: "Doch kein Schöt" unten
+  bottomRemoveSchoetBtn.addEventListener("click", () => {
+    if(bottomSchoet > 0){
+      bottomSchoet--;
+      bottomSchoetDisplay.textContent = bottomSchoet;
+      calculateResult();
+    }
   });
   
   topMeterInput.addEventListener("input", calculateResult);
