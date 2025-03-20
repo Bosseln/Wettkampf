@@ -58,11 +58,12 @@
       margin-top: 20px;
       display: block;
     }
-    /* Zusätzliche Stile für den "Doch kein Schöt"-Button */
+    /* Schöööööt-Button übernimmt die Standardgröße; 
+       "Doch kein Schöt" soll etwas kleiner sein */
     .removeSchoetBtn {
       padding: 5px 10px;
       font-size: 0.9em;
-      margin-left: 10px;
+      margin-left: 5px;
       cursor: pointer;
     }
   </style>
@@ -316,14 +317,10 @@
   </table>
 </div>
 
-<!-- Unteres Team (Führung) -->
-<div id="bottomTeam" class="team-header green">
-  <button id="bottomTeamToggleBtn">Führung</button>
-  <input type="text" id="bottomVerein" placeholder="Verein eintragen..." />
-  <button id="bottomSchoetBtn">Schöööööt!</button>
-  <button id="bottomRemoveSchoetBtn" class="removeSchoetBtn">Doch kein Schöt</button>
-  &nbsp;Schoet: <span id="bottomSchoetDisplay">0</span>
-  &nbsp;Meter: <input type="number" id="bottomMeterInput" value="0" />
+<!-- Ergebnis-Anzeige -->
+<div class="score-area">
+  <strong>Ergebnis Schoet:</strong> <span id="ergebnisSchoet">0.0</span><br />
+  <strong>Ergebnis Meter:</strong> <span id="ergebnisMeter">0</span>
 </div>
 
 <!-- Firebase SDKs -->
