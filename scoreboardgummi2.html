@@ -34,6 +34,7 @@
     <option value="women">Frauen</option>
   </select>
 </div>
+
 <br>
 
 <!-- Oberes Team (Führung) -->
@@ -280,10 +281,10 @@
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
 <script>
-  // Lese die Wettkampfdaten aus der URL – für diese Datei gilt die Gruppe "holz1" (jetzt geändert auf gummi2)
+  // Lese die Wettkampfdaten aus der URL – für diese Datei gilt die Gruppe "holz1" (jetzt geändert zu gummi2)
   const params = new URLSearchParams(window.location.search);
   const compId = params.get("compId") || "Keine ID";
-  // Gruppen-ID für diese Datei:
+  // Für diese Datei ist die Gruppen-ID fest: gummi2
   const groupId = "gummi2";
   
   // Firebase-Konfiguration – ggf. anpassen
@@ -331,6 +332,10 @@
   // Globale Zähler für die Checkboxen der letzten Messung
   let lastTopCount = 0;
   let lastBottomCount = 0;
+  
+  // Neue Variablen, die die akkumulierten neuen Haken seit letzter Messung speichern
+  let accumulatedDiffTop = 0;
+  let accumulatedDiffBottom = 0;
   
   // Funktion, die alle gecheckten Checkboxen in einer Tabelle zählt
   function countCheckboxes(tableId) {
@@ -434,6 +439,10 @@
           lastTopCount = countCheckboxes("upperTable");
           lastBottomCount = countCheckboxes("lowerTable");
           
+          // Setze auch die Akkumulatoren zurück
+          accumulatedDiffTop = 0;
+          accumulatedDiffBottom = 0;
+          
           calculateResult();
         }
       })
@@ -461,7 +470,7 @@
     }
   }
   
-  // Füge Listener zu allen Checkboxen hinzu, damit calculateResult() bei jeder Änderung ausgeführt wird
+  // Füge Listener zu allen Checkboxen hinzu, sodass calculateResult() bei jeder Änderung ausgeführt wird
   function addTableInputListeners() {
     const inputs = document.querySelectorAll("input[type='checkbox']");
     inputs.forEach(input => {
@@ -470,37 +479,53 @@
   }
   addTableInputListeners();
   
-  /* Neue calculateResult()-Funktion:
+  /* Neue calculateResult()-Funktion mit automatischem Führungswechsel:
      - Zählt in beiden Tabellen die aktuell abgehakten Checkboxen.
-     - Berechnet die Differenz zu den zuletzt gespeicherten Werten.
-     - Führungswechsel erfolgt automatisch, wenn das Team mit Führung (grün) in diesem Update mindestens 2 neue Haken erhält und das andere Team keine neuen Haken bekommt.
+     - Berechnet die Differenz zur letzten Messung.
+     - Für das Team mit Führung (grün) wird der Unterschied akkumuliert; bekommt das andere Team in diesem Update neue Haken, wird der Akkumulator zurückgesetzt.
+     - Erreicht der Akkumulator des führenden Teams ≥ 2, wechselt die Führung und beide Akkumulatoren werden zurückgesetzt.
   */
   function calculateResult() {
-    // Zähle die aktuell gesetzten Checkboxen
     const currentTopCount = countCheckboxes("upperTable");
     const currentBottomCount = countCheckboxes("lowerTable");
     
-    // Berechne die Differenz zur letzten Messung
     const diffTop = currentTopCount - lastTopCount;
     const diffBottom = currentBottomCount - lastBottomCount;
     
-    // Automatischer Führungswechsel:
-    // Wenn das Team mit Führung (grün) in diesem Update mindestens 2 neue Haken bekommt UND das andere Team KEINE neuen Haken, wechselt die Führung.
+    // Führungswechsel-Logik:
     if (topTeam.classList.contains("green")) {
-      if (diffTop >= 2 && diffBottom === 0) {
-        // Oberes Team verliert Führung; unteres Team übernimmt
+      if (diffTop > 0) {
+        accumulatedDiffTop += diffTop;
+      }
+      if (diffBottom > 0) {
+        accumulatedDiffTop = 0;
+      }
+      if (accumulatedDiffTop >= 2) {
+        // Wechsel: Oberes Team verliert Führung, unteres Team übernimmt
         topTeam.classList.remove("green");
         topTeam.classList.add("red");
         bottomTeam.classList.remove("red");
         bottomTeam.classList.add("green");
+        accumulatedDiffTop = 0;
+        accumulatedDiffBottom = 0;
       }
     } else {
-      if (diffBottom >= 2 && diffTop === 0) {
-        // Unteres Team hat Führung; bei 2 neuen Haken wechselt die Führung zu oben
-        bottomTeam.classList.remove("green");
-        bottomTeam.classList.add("red");
-        topTeam.classList.remove("red");
-        topTeam.classList.add("green");
+      if (bottomTeam.classList.contains("green")) {
+        if (diffBottom > 0) {
+          accumulatedDiffBottom += diffBottom;
+        }
+        if (diffTop > 0) {
+          accumulatedDiffBottom = 0;
+        }
+        if (accumulatedDiffBottom >= 2) {
+          // Wechsel: Unteres Team verliert Führung, oberes Team übernimmt
+          bottomTeam.classList.remove("green");
+          bottomTeam.classList.add("red");
+          topTeam.classList.remove("red");
+          topTeam.classList.add("green");
+          accumulatedDiffTop = 0;
+          accumulatedDiffBottom = 0;
+        }
       }
     }
     
@@ -518,7 +543,7 @@
       meterDiff = - (Math.abs(meterDiff) % threshold);
     }
     
-    // Gesamt-Ergebnis: Differenz der Schöt-Zähler (manuell erhöht via Schöööööt! und -1)
+    // Gesamt-Ergebnis: Differenz der Schöt-Zähler (wird weiterhin manuell über die Schöööööt! und -1 Buttons erhöht)
     const totalDiff = topSchoet - bottomSchoet;
     ergebnisSchoet.textContent = totalDiff.toFixed(1);
     ergebnisMeter.textContent = meterDiff.toFixed(0);
@@ -529,7 +554,7 @@
   // Lade den gespeicherten Zustand beim Start
   loadState();
   
-  // Füge einen "Zurück"-Button hinzu, der den Zustand speichert und zur Gruppenselektionsseite zurückführt
+  // "Zurück"-Button: Speichert den Zustand und navigiert zurück zur Gruppenselektionsseite
   const backBtn = document.createElement("button");
   backBtn.textContent = "Zurück";
   backBtn.style.padding = "10px 15px";
