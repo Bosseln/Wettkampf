@@ -58,6 +58,13 @@
       margin-top: 20px;
       display: block;
     }
+    /* Der "-1" Button soll etwas kleiner sein */
+    .removeSchoetBtn {
+      padding: 5px 10px;
+      font-size: 0.9em;
+      margin-left: 5px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -80,6 +87,7 @@
   <button id="topTeamToggleBtn">Führung</button>
   <input type="text" id="topVerein" placeholder="Verein eintragen..." />
   <button id="topSchoetBtn">Schöööööt!</button>
+  <button id="topRemoveSchoetBtn" class="removeSchoetBtn">-1</button>
   &nbsp;Schoet: <span id="topSchoetDisplay">0</span>
   &nbsp;Meter: <input type="number" id="topMeterInput" value="0" />
 </div>
@@ -96,7 +104,7 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Für das obere Team: 5 Zeilen -->
+      <!-- Für das obere Team: 5 Zeilen (Werfer 1, Werfer 2, Werfer 3, Werfer 4, Ersatz 1) -->
       <tr>
         <td><input type="text" id="gummi1_top_name0" placeholder="Werfer 1" /></td>
         <td><input type="checkbox" id="gummi1_top_cb0_1" /></td>
@@ -196,6 +204,7 @@
   <button id="bottomTeamToggleBtn">Führung</button>
   <input type="text" id="bottomVerein" placeholder="Verein eintragen..." />
   <button id="bottomSchoetBtn">Schöööööt!</button>
+  <button id="bottomRemoveSchoetBtn" class="removeSchoetBtn">-1</button>
   &nbsp;Schoet: <span id="bottomSchoetDisplay">0</span>
   &nbsp;Meter: <input type="number" id="bottomMeterInput" value="0" />
 </div>
@@ -323,7 +332,7 @@
   // Für diese Datei ist die Gruppen-ID fest: gummi1
   const groupId = "gummi1";
   
-  // Firebase-Konfiguration – passe diese Werte ggf. an
+  // Firebase-Konfiguration – ggf. anpassen
   const firebaseConfig = {
     apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
     authDomain: "wettkampf-f6f92.firebaseapp.com",
@@ -347,6 +356,9 @@
   const topSchoetBtn = document.getElementById("topSchoetBtn");
   const bottomSchoetBtn = document.getElementById("bottomSchoetBtn");
   
+  const topRemoveSchoetBtn = document.getElementById("topRemoveSchoetBtn");
+  const bottomRemoveSchoetBtn = document.getElementById("bottomRemoveSchoetBtn");
+  
   const topSchoetDisplay = document.getElementById("topSchoetDisplay");
   const bottomSchoetDisplay = document.getElementById("bottomSchoetDisplay");
   
@@ -357,7 +369,6 @@
   const ergebnisMeter = document.getElementById("ergebnisMeter");
   
   const genderSelect = document.getElementById("genderSelect");
-  const resetBtn = document.getElementById("resetBtn");
   
   // Globale Variablen
   let topSchoet = 0;
@@ -523,6 +534,24 @@
     bottomSchoet++;
     bottomSchoetDisplay.textContent = bottomSchoet;
     calculateResult();
+  });
+  
+  // Neuer Button: "-1" oben
+  topRemoveSchoetBtn.addEventListener("click", () => {
+    if (topSchoet > 0) {
+      topSchoet--;
+      topSchoetDisplay.textContent = topSchoet;
+      calculateResult();
+    }
+  });
+  
+  // Neuer Button: "-1" unten
+  bottomRemoveSchoetBtn.addEventListener("click", () => {
+    if (bottomSchoet > 0) {
+      bottomSchoet--;
+      bottomSchoetDisplay.textContent = bottomSchoet;
+      calculateResult();
+    }
   });
   
   topMeterInput.addEventListener("input", calculateResult);
