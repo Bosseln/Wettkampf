@@ -58,8 +58,7 @@
       margin-top: 20px;
       display: block;
     }
-    /* Schöööööt-Button übernimmt die Standardgröße; 
-       "Doch kein Schöt" soll etwas kleiner sein */
+    /* Der "Doch kein Schöt" Button soll nun "-1" heißen und etwas kleiner sein */
     .removeSchoetBtn {
       padding: 5px 10px;
       font-size: 0.9em;
@@ -88,7 +87,7 @@
   <button id="topTeamToggleBtn">Führung</button>
   <input type="text" id="topVerein" placeholder="Verein eintragen..." />
   <button id="topSchoetBtn">Schöööööt!</button>
-  <button id="topRemoveSchoetBtn" class="removeSchoetBtn">Doch kein Schöt</button>
+  <button id="topRemoveSchoetBtn" class="removeSchoetBtn">-1</button>
   &nbsp;Schoet: <span id="topSchoetDisplay">0</span>
   &nbsp;Meter: <input type="number" id="topMeterInput" value="0" />
 </div>
@@ -205,7 +204,7 @@
   <button id="bottomTeamToggleBtn">Führung</button>
   <input type="text" id="bottomVerein" placeholder="Verein eintragen..." />
   <button id="bottomSchoetBtn">Schöööööt!</button>
-  <button id="bottomRemoveSchoetBtn" class="removeSchoetBtn">Doch kein Schöt</button>
+  <button id="bottomRemoveSchoetBtn" class="removeSchoetBtn">-1</button>
   &nbsp;Schoet: <span id="bottomSchoetDisplay">0</span>
   &nbsp;Meter: <input type="number" id="bottomMeterInput" value="0" />
 </div>
@@ -537,18 +536,18 @@
     calculateResult();
   });
   
-  // Neuer Button: "Doch kein Schöt" oben
+  // Neuer Button: "-1" oben
   topRemoveSchoetBtn.addEventListener("click", () => {
-    if(topSchoet > 0){
+    if (topSchoet > 0) {
       topSchoet--;
       topSchoetDisplay.textContent = topSchoet;
       calculateResult();
     }
   });
   
-  // Neuer Button: "Doch kein Schöt" unten
+  // Neuer Button: "-1" unten
   bottomRemoveSchoetBtn.addEventListener("click", () => {
-    if(bottomSchoet > 0){
+    if (bottomSchoet > 0) {
       bottomSchoet--;
       bottomSchoetDisplay.textContent = bottomSchoet;
       calculateResult();
