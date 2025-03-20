@@ -5,59 +5,21 @@
   <title>Boßeln Scoreboard – Holz 2</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    h1 {
-      margin-bottom: 10px;
-    }
-    .team-header {
-      color: #fff;
-      padding: 10px;
-      margin-bottom: 5px;
-    }
-    .red {
-      background-color: red;
-    }
-    .green {
-      background-color: green;
-    }
-    .table-container {
-      overflow-x: auto;
-      margin-bottom: 15px;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      max-width: 900px;
-    }
-    th, td {
-      border: 1px solid #000;
-      padding: 5px;
-      text-align: center;
-    }
-    input[type="text"] {
-      width: 100px;
-    }
-    input[type="number"] {
-      width: 60px;
-    }
-    .score-area {
-      margin: 10px 0;
-      font-size: 1.1em;
-    }
-    #genderSelect {
-      margin-left: 10px;
-      margin-right: 10px;
-    }
-    button#backBtn {
-      padding: 10px 15px;
-      font-size: 1em;
-      cursor: pointer;
-      margin-top: 20px;
-      display: block;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { margin-bottom: 10px; }
+    .team-header { color: #fff; padding: 10px; margin-bottom: 5px; }
+    .red { background-color: red; }
+    .green { background-color: green; }
+    .table-container { overflow-x: auto; margin-bottom: 15px; }
+    table { border-collapse: collapse; width: 100%; max-width: 900px; }
+    th, td { border: 1px solid #000; padding: 5px; text-align: center; }
+    input[type="text"] { width: 100px; }
+    input[type="number"] { width: 60px; }
+    .score-area { margin: 10px 0; font-size: 1.1em; }
+    #genderSelect { margin-left: 10px; margin-right: 10px; }
+    button#backBtn { padding: 10px 15px; font-size: 1em; cursor: pointer; margin-top: 20px; display: block; }
+    /* Der "-1" Button soll etwas kleiner sein */
+    .removeSchoetBtn { padding: 5px 10px; font-size: 0.9em; margin-left: 5px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -80,6 +42,7 @@
   <button id="topTeamToggleBtn">Führung</button>
   <input type="text" id="topVerein" placeholder="Verein eintragen..." />
   <button id="topSchoetBtn">Schöööööt!</button>
+  <button id="topRemoveSchoetBtn" class="removeSchoetBtn">-1</button>
   &nbsp;Schoet: <span id="topSchoetDisplay">0</span>
   &nbsp;Meter: <input type="number" id="topMeterInput" value="0" />
 </div>
@@ -96,7 +59,7 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Für das obere Team: 5 Zeilen (Werfer 1, Werfer 2, Werfer 3, Werfer 4, Ersatz 1) -->
+      <!-- 5 Zeilen: Werfer 1, Werfer 2, Werfer 3, Werfer 4, Ersatz 1 -->
       <tr>
         <td><input type="text" id="holz2_top_name0" placeholder="Werfer 1" /></td>
         <td><input type="checkbox" id="holz2_top_cb0_1" /></td>
@@ -196,6 +159,7 @@
   <button id="bottomTeamToggleBtn">Führung</button>
   <input type="text" id="bottomVerein" placeholder="Verein eintragen..." />
   <button id="bottomSchoetBtn">Schöööööt!</button>
+  <button id="bottomRemoveSchoetBtn" class="removeSchoetBtn">-1</button>
   &nbsp;Schoet: <span id="bottomSchoetDisplay">0</span>
   &nbsp;Meter: <input type="number" id="bottomMeterInput" value="0" />
 </div>
@@ -212,7 +176,6 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Für das untere Team: 5 Zeilen -->
       <tr>
         <td><input type="text" id="holz2_bottom_name0" placeholder="Werfer 1" /></td>
         <td><input type="checkbox" id="holz2_bottom_cb0_1" /></td>
@@ -317,13 +280,13 @@
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
 <script>
-  // Lese die Wettkampfdaten aus dem URL-Parameter (compId) – für diese Datei gilt die Gruppe "holz2"
+  // Lese die Wettkampfdaten aus dem URL-Parameter – für diese Datei gilt die Gruppe "holz2"
   const params = new URLSearchParams(window.location.search);
   const compId = params.get("compId") || "Keine ID";
   // Für diese Datei ist die Gruppen-ID fest: holz2
   const groupId = "holz2";
   
-  // Firebase-Konfiguration – passe diese Werte ggf. an
+  // Firebase-Konfiguration – ggf. anpassen
   const firebaseConfig = {
     apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
     authDomain: "wettkampf-f6f92.firebaseapp.com",
@@ -347,6 +310,9 @@
   const topSchoetBtn = document.getElementById("topSchoetBtn");
   const bottomSchoetBtn = document.getElementById("bottomSchoetBtn");
   
+  const topRemoveSchoetBtn = document.getElementById("topRemoveSchoetBtn");
+  const bottomRemoveSchoetBtn = document.getElementById("bottomRemoveSchoetBtn");
+  
   const topSchoetDisplay = document.getElementById("topSchoetDisplay");
   const bottomSchoetDisplay = document.getElementById("bottomSchoetDisplay");
   
@@ -357,7 +323,6 @@
   const ergebnisMeter = document.getElementById("ergebnisMeter");
   
   const genderSelect = document.getElementById("genderSelect");
-  const resetBtn = document.getElementById("resetBtn");
   
   // Globale Variablen
   let topSchoet = 0;
@@ -441,10 +406,7 @@
             bottomTeam.classList.remove("green");
           }
           
-          if (state.gender) {
-            genderSelect.value = state.gender;
-          }
-          
+          if (state.gender) genderSelect.value = state.gender;
           if (state.upperTable) loadTable("upperTable", state.upperTable);
           if (state.lowerTable) loadTable("lowerTable", state.lowerTable);
           ergebnisSchoet.textContent = state.resultSchoet || "0.0";
@@ -525,19 +487,30 @@
     calculateResult();
   });
   
+  topRemoveSchoetBtn.addEventListener("click", () => {
+    if (topSchoet > 0) {
+      topSchoet--;
+      topSchoetDisplay.textContent = topSchoet;
+      calculateResult();
+    }
+  });
+  
+  bottomRemoveSchoetBtn.addEventListener("click", () => {
+    if (bottomSchoet > 0) {
+      bottomSchoet--;
+      bottomSchoetDisplay.textContent = bottomSchoet;
+      calculateResult();
+    }
+  });
+  
   topMeterInput.addEventListener("input", calculateResult);
   bottomMeterInput.addEventListener("input", calculateResult);
   
-  // Fügt Event-Listener zu allen Input-Feldern in den Tabellen hinzu, sodass Änderungen sofort gespeichert werden
   function addTableInputListeners() {
     const upperInputs = document.querySelectorAll("#upperTable input");
-    upperInputs.forEach(input => {
-      input.addEventListener("change", calculateResult);
-    });
+    upperInputs.forEach(input => { input.addEventListener("change", calculateResult); });
     const lowerInputs = document.querySelectorAll("#lowerTable input");
-    lowerInputs.forEach(input => {
-      input.addEventListener("change", calculateResult);
-    });
+    lowerInputs.forEach(input => { input.addEventListener("change", calculateResult); });
   }
   addTableInputListeners();
   
@@ -570,10 +543,8 @@
     saveState();
   }
   
-  // Lade den gespeicherten Zustand beim Laden der Seite
   loadState();
   
-  // Füge einen "Zurück"-Button hinzu, der beim Klicken den Zustand speichert und zur Gruppenselektionsseite zurückführt
   const backBtn = document.createElement("button");
   backBtn.textContent = "Zurück";
   backBtn.style.padding = "10px 15px";
