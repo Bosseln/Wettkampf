@@ -281,11 +281,11 @@
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
 <script>
-  // Lese die Wettkampfdaten aus der URL – für diese Datei gilt die Gruppe "holz1" (jetzt geändert zu gummi2)
+  // Lese die Wettkampfdaten aus der URL – für diese Datei gilt die Gruppe "holz1" (jetzt geändert zu gummi2, soll aber auf Holz 2 geändert werden)
   const params = new URLSearchParams(window.location.search);
   const compId = params.get("compId") || "Keine ID";
-  // Für diese Datei ist die Gruppen-ID fest: gummi2
-  const groupId = "gummi2";
+  // Für diese Datei ist die Gruppen-ID fest: soll jetzt "holz2" sein
+  const groupId = "holz2";
   
   // Firebase-Konfiguration – ggf. anpassen
   const firebaseConfig = {
@@ -484,6 +484,9 @@
      - Berechnet die Differenz zur letzten Messung.
      - Für das Team mit Führung (grün) wird der Unterschied akkumuliert; bekommt das andere Team in diesem Update neue Haken, wird der Akkumulator zurückgesetzt.
      - Erreicht der Akkumulator des führenden Teams ≥ 2, wechselt die Führung und beide Akkumulatoren werden zurückgesetzt.
+     
+     Zusätzlich: Wenn das nicht führende Team (also das Team, das aktuell nicht grün ist) in einem Update mindestens zwei neue Checkboxen erhält, 
+     wird dem führenden Team automatisch +1 Schoet hinzugefügt und es erscheint ein Popup "Schöööt!".
   */
   function calculateResult() {
     const currentTopCount = countCheckboxes("upperTable");
@@ -509,24 +512,33 @@
         accumulatedDiffTop = 0;
         accumulatedDiffBottom = 0;
       }
-    } else {
-      if (bottomTeam.classList.contains("green")) {
-        if (diffBottom > 0) {
-          accumulatedDiffBottom += diffBottom;
-        }
-        if (diffTop > 0) {
-          accumulatedDiffBottom = 0;
-        }
-        if (accumulatedDiffBottom >= 2) {
-          // Wechsel: Unteres Team verliert Führung, oberes Team übernimmt
-          bottomTeam.classList.remove("green");
-          bottomTeam.classList.add("red");
-          topTeam.classList.remove("red");
-          topTeam.classList.add("green");
-          accumulatedDiffTop = 0;
-          accumulatedDiffBottom = 0;
-        }
+    } else if (bottomTeam.classList.contains("green")) {
+      if (diffBottom > 0) {
+        accumulatedDiffBottom += diffBottom;
       }
+      if (diffTop > 0) {
+        accumulatedDiffBottom = 0;
+      }
+      if (accumulatedDiffBottom >= 2) {
+        // Wechsel: Unteres Team verliert Führung, oberes Team übernimmt
+        bottomTeam.classList.remove("green");
+        bottomTeam.classList.add("red");
+        topTeam.classList.remove("red");
+        topTeam.classList.add("green");
+        accumulatedDiffTop = 0;
+        accumulatedDiffBottom = 0;
+      }
+    }
+    
+    // Extra Schöt-Logik:
+    // Wenn das nicht führende Team (also das Team, das nicht grün ist) in diesem Update mindestens 2 neue Haken erhält,
+    // bekommt das führende Team einen Schöt (+1) und ein Popup "Schöööt!" erscheint.
+    if (topTeam.classList.contains("green") && diffBottom >= 2) {
+      topSchoet++;
+      alert("Schöööt!");
+    } else if (bottomTeam.classList.contains("green") && diffTop >= 2) {
+      bottomSchoet++;
+      alert("Schöööt!");
     }
     
     // Aktualisiere die "letzten" Zähler für die nächste Messung
