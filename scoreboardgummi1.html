@@ -221,7 +221,7 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Für das untere Team: 5 Zeilen -->
+      <!-- 5 Zeilen für das untere Team -->
       <tr>
         <td><input type="text" id="gummi1_bottom_name0" placeholder="Werfer 1" /></td>
         <td><input type="checkbox" id="gummi1_bottom_cb0_1" /></td>
@@ -329,7 +329,7 @@
   // Lese die Wettkampfdaten aus dem URL-Parameter (compId) – für diese Datei gilt die Gruppe "gummi1"
   const params = new URLSearchParams(window.location.search);
   const compId = params.get("compId") || "Keine ID";
-  // Für diese Datei ist die Gruppen-ID fest: gummi1
+  // Für das Scoreboard bleibt die Gruppen-ID "gummi1" (für Speicherung der Daten)
   const groupId = "gummi1";
   
   // Firebase-Konfiguration – ggf. anpassen
@@ -346,8 +346,10 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   
-  // LOCK-MECHANISMUS: Verhindern, dass mehrere Nutzer die Seite gleichzeitig verwenden
-  const lockRef = db.ref('competitions/' + compId + '/groups/' + groupId + '/lock');
+  // LOCK-MECHANISMUS: Nur ein Nutzer darf diese Seite (scoreboards/gummi1) gleichzeitig verwenden
+  // (Der Lock-Pfad wird hier separat von der Gruppen-ID gesetzt.)
+  const pageName = "gummi1";
+  const lockRef = db.ref('competitions/' + compId + '/scoreboards/' + pageName + '/lock');
   const clientId = Math.random().toString(36).substr(2, 9);
   
   lockRef.transaction(function(currentLock) {
@@ -499,10 +501,7 @@
             bottomTeam.classList.remove("green");
           }
           
-          if (state.gender) {
-            genderSelect.value = state.gender;
-          }
-          
+          if (state.gender) genderSelect.value = state.gender;
           if (state.upperTable) loadTable("upperTable", state.upperTable);
           if (state.lowerTable) loadTable("lowerTable", state.lowerTable);
           ergebnisSchoet.textContent = state.resultSchoet || "0.0";
@@ -583,7 +582,6 @@
     calculateResult();
   });
   
-  // Neuer Button: "-1" oben
   topRemoveSchoetBtn.addEventListener("click", () => {
     if (topSchoet > 0) {
       topSchoet--;
@@ -592,7 +590,6 @@
     }
   });
   
-  // Neuer Button: "-1" unten
   bottomRemoveSchoetBtn.addEventListener("click", () => {
     if (bottomSchoet > 0) {
       bottomSchoet--;
@@ -604,16 +601,11 @@
   topMeterInput.addEventListener("input", calculateResult);
   bottomMeterInput.addEventListener("input", calculateResult);
   
-  // Fügt Event-Listener zu allen Input-Feldern in den Tabellen hinzu, sodass Änderungen sofort gespeichert werden
   function addTableInputListeners() {
     const upperInputs = document.querySelectorAll("#upperTable input");
-    upperInputs.forEach(input => {
-      input.addEventListener("change", calculateResult);
-    });
+    upperInputs.forEach(input => { input.addEventListener("change", calculateResult); });
     const lowerInputs = document.querySelectorAll("#lowerTable input");
-    lowerInputs.forEach(input => {
-      input.addEventListener("change", calculateResult);
-    });
+    lowerInputs.forEach(input => { input.addEventListener("change", calculateResult); });
   }
   addTableInputListeners();
   
@@ -646,10 +638,8 @@
     saveState();
   }
   
-  // Lade den gespeicherten Zustand beim Laden der Seite
   loadState();
   
-  // Füge einen "Zurück"-Button hinzu, der beim Klicken den Zustand speichert und zur Gruppenselektionsseite zurückführt
   const backBtn = document.createElement("button");
   backBtn.textContent = "Zurück";
   backBtn.id = "backBtn";
