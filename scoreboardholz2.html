@@ -279,6 +279,10 @@
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
+<!-- Neue Bibliotheken für PDF-Konvertierung -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <script>
   // Lese die Wettkampfdaten aus dem URL-Parameter – für diese Datei gilt die Gruppe "holz2"
   const params = new URLSearchParams(window.location.search);
@@ -605,6 +609,26 @@
     window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId);
   });
   document.body.appendChild(backBtn);
+  
+  // Neuer Konvertieren-Button: Erzeugt einen Screenshot der Seite und konvertiert diesen in ein PDF (halbe DIN-A4, 210x148,5 mm)
+  const convertBtn = document.createElement("button");
+  convertBtn.id = "convertBtn";
+  convertBtn.textContent = "Konvertieren zu PDF";
+  convertBtn.style.padding = "10px 15px";
+  convertBtn.style.fontSize = "1em";
+  convertBtn.style.cursor = "pointer";
+  document.body.appendChild(convertBtn);
+  
+  convertBtn.addEventListener("click", () => {
+    html2canvas(document.body, { scale: 2 }).then(canvas => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jspdf.jsPDF("p", "mm", [210, 148.5]);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save("screenshot.pdf");
+    });
+  });
 </script>
 </body>
 </html>
