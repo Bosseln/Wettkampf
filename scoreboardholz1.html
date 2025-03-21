@@ -18,7 +18,7 @@
     .score-area { margin: 10px 0; font-size: 1.1em; }
     #genderSelect { margin-left: 10px; margin-right: 10px; }
     button#backBtn { padding: 10px 15px; font-size: 1em; cursor: pointer; margin-top: 20px; display: block; }
-    /* Der "-1" Button etwas kleiner */
+    /* Der "-1" Button soll etwas kleiner sein */
     .removeSchoetBtn { padding: 5px 10px; font-size: 0.9em; margin-left: 5px; cursor: pointer; }
   </style>
 </head>
@@ -78,7 +78,6 @@
         <td><input type="checkbox" id="holz1_top_cb0_14" /></td>
         <td><input type="checkbox" id="holz1_top_cb0_15" /></td>
       </tr>
-      <!-- Weitere Zeilen analog -->
       <tr>
         <td><input type="text" id="holz1_top_name1" placeholder="Werfer 2" /></td>
         <td><input type="checkbox" id="holz1_top_cb1_1" /></td>
@@ -155,7 +154,7 @@
   </table>
 </div>
 
-<!-- Unteres Team (Führung) -->
+<!-- Unteres Team (Führung) – startet standardmäßig mit Führung (grün) -->
 <div id="bottomTeam" class="team-header green">
   <button id="bottomTeamToggleBtn">Führung</button>
   <input type="text" id="bottomVerein" placeholder="Verein eintragen..." />
@@ -282,10 +281,9 @@
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
 <script>
-  // Lese die Wettkampfdaten aus der URL (compId) – für diese Datei gilt die Gruppe "holz1"
+  // Lese die Wettkampfdaten aus der URL – für diese Datei gilt die Gruppe "holz1"
   const params = new URLSearchParams(window.location.search);
   const compId = params.get("compId") || "Keine ID";
-  // Gruppen-ID für Holz 1:
   const groupId = "holz1";
   
   // Firebase-Konfiguration – ggf. anpassen
@@ -326,11 +324,30 @@
   
   const genderSelect = document.getElementById("genderSelect");
   
-  // Globale Variablen
+  // Globale Variablen für Schöt-Zähler
   let topSchoet = 0;
   let bottomSchoet = 0;
   
-  // Speichere den Zustand in Firebase
+  // Globale Zähler für die Checkboxen der letzten Messung
+  let lastTopCount = 0;
+  let lastBottomCount = 0;
+  
+  // Neue Variablen, die die akkumulierten neuen Haken seit letzter Messung speichern
+  let accumulatedDiffTop = 0;
+  let accumulatedDiffBottom = 0;
+  
+  // Funktion, die alle gecheckten Checkboxen in einer Tabelle zählt
+  function countCheckboxes(tableId) {
+    const table = document.getElementById(tableId);
+    let count = 0;
+    const inputs = table.querySelectorAll("input[type='checkbox']");
+    inputs.forEach(input => {
+      if (input.checked) count++;
+    });
+    return count;
+  }
+  
+  // Zustand in Firebase speichern
   function saveState() {
     const state = {
       topTeam: {
@@ -378,7 +395,7 @@
     return data;
   }
   
-  // Lade Zustand aus Firebase
+  // Zustand aus Firebase laden
   function loadState() {
     db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').once('value')
       .then(snapshot => {
@@ -408,11 +425,23 @@
             bottomTeam.classList.remove("green");
           }
           
-          if (state.gender) genderSelect.value = state.gender;
+          if (state.gender) {
+            genderSelect.value = state.gender;
+          }
+          
           if (state.upperTable) loadTable("upperTable", state.upperTable);
           if (state.lowerTable) loadTable("lowerTable", state.lowerTable);
           ergebnisSchoet.textContent = state.resultSchoet || "0.0";
           ergebnisMeter.textContent = state.resultMeter || "0";
+          
+          // Setze die "letzten" Zähler anhand des aktuellen Zustands
+          lastTopCount = countCheckboxes("upperTable");
+          lastBottomCount = countCheckboxes("lowerTable");
+          
+          // Setze auch die Akkumulatoren zurück
+          accumulatedDiffTop = 0;
+          accumulatedDiffBottom = 0;
+          
           calculateResult();
         }
       })
@@ -440,113 +469,91 @@
     }
   }
   
-  // Event-Listener für die Team-Bereiche
-  topTeamToggleBtn.addEventListener("click", () => {
-    if (topTeam.classList.contains("red")) {
-      topTeam.classList.remove("red");
-      topTeam.classList.add("green");
-    } else {
-      topTeam.classList.remove("green");
-      topTeam.classList.add("red");
-    }
-    if (bottomTeam.classList.contains("green")) {
-      bottomTeam.classList.remove("green");
-      bottomTeam.classList.add("red");
-    } else {
-      bottomTeam.classList.remove("red");
-      bottomTeam.classList.add("green");
-    }
-    calculateResult();
-  });
-  
-  bottomTeamToggleBtn.addEventListener("click", () => {
-    if (bottomTeam.classList.contains("green")) {
-      bottomTeam.classList.remove("green");
-      bottomTeam.classList.add("red");
-    } else {
-      bottomTeam.classList.remove("red");
-      bottomTeam.classList.add("green");
-    }
-    if (topTeam.classList.contains("red")) {
-      topTeam.classList.remove("red");
-      topTeam.classList.add("green");
-    } else {
-      topTeam.classList.remove("green");
-      topTeam.classList.add("red");
-    }
-    calculateResult();
-  });
-  
-  topSchoetBtn.addEventListener("click", () => {
-    topSchoet++;
-    topSchoetDisplay.textContent = topSchoet;
-    calculateResult();
-  });
-  
-  bottomSchoetBtn.addEventListener("click", () => {
-    bottomSchoet++;
-    bottomSchoetDisplay.textContent = bottomSchoet;
-    calculateResult();
-  });
-  
-  topRemoveSchoetBtn.addEventListener("click", () => {
-    if (topSchoet > 0) {
-      topSchoet--;
-      topSchoetDisplay.textContent = topSchoet;
-      calculateResult();
-    }
-  });
-  
-  bottomRemoveSchoetBtn.addEventListener("click", () => {
-    if (bottomSchoet > 0) {
-      bottomSchoet--;
-      bottomSchoetDisplay.textContent = bottomSchoet;
-      calculateResult();
-    }
-  });
-  
-  topMeterInput.addEventListener("input", calculateResult);
-  bottomMeterInput.addEventListener("input", calculateResult);
-  
+  // Füge Listener zu allen Checkboxen hinzu, sodass calculateResult() bei jeder Änderung ausgeführt wird
   function addTableInputListeners() {
-    const upperInputs = document.querySelectorAll("#upperTable input");
-    upperInputs.forEach(input => { input.addEventListener("change", calculateResult); });
-    const lowerInputs = document.querySelectorAll("#lowerTable input");
-    lowerInputs.forEach(input => { input.addEventListener("change", calculateResult); });
+    const inputs = document.querySelectorAll("input[type='checkbox']");
+    inputs.forEach(input => {
+      input.addEventListener("change", calculateResult);
+    });
   }
   addTableInputListeners();
   
+  /* Neue calculateResult()-Funktion mit automatischem Führungswechsel:
+     - Zählt in beiden Tabellen die aktuell abgehakten Checkboxen.
+     - Berechnet die Differenz zur letzten Messung.
+     - Für das Team mit Führung (grün) wird der Unterschied akkumuliert; bekommt das andere Team in diesem Update neue Haken, wird der Akkumulator zurückgesetzt.
+     - Erreicht der Akkumulator des führenden Teams ≥ 2, wechselt die Führung und beide Akkumulatoren werden zurückgesetzt.
+  */
   function calculateResult() {
+    const currentTopCount = countCheckboxes("upperTable");
+    const currentBottomCount = countCheckboxes("lowerTable");
+    
+    const diffTop = currentTopCount - lastTopCount;
+    const diffBottom = currentBottomCount - lastBottomCount;
+    
+    // Führungswechsel-Logik:
+    if (topTeam.classList.contains("green")) {
+      if (diffTop > 0) {
+        accumulatedDiffTop += diffTop;
+      }
+      if (diffBottom > 0) {
+        accumulatedDiffTop = 0;
+      }
+      if (accumulatedDiffTop >= 2) {
+        // Wechsel: Oberes Team verliert Führung, unteres Team übernimmt
+        topTeam.classList.remove("green");
+        topTeam.classList.add("red");
+        bottomTeam.classList.remove("red");
+        bottomTeam.classList.add("green");
+        accumulatedDiffTop = 0;
+        accumulatedDiffBottom = 0;
+      }
+    } else {
+      if (bottomTeam.classList.contains("green")) {
+        if (diffBottom > 0) {
+          accumulatedDiffBottom += diffBottom;
+        }
+        if (diffTop > 0) {
+          accumulatedDiffBottom = 0;
+        }
+        if (accumulatedDiffBottom >= 2) {
+          // Wechsel: Unteres Team verliert Führung, oberes Team übernimmt
+          bottomTeam.classList.remove("green");
+          bottomTeam.classList.add("red");
+          topTeam.classList.remove("red");
+          topTeam.classList.add("green");
+          accumulatedDiffTop = 0;
+          accumulatedDiffBottom = 0;
+        }
+      }
+    }
+    
+    // Aktualisiere die "letzten" Zähler für die nächste Messung
+    lastTopCount = currentTopCount;
+    lastBottomCount = currentBottomCount;
+    
+    // Meter-Berechnung (wie gehabt)
     let meterDiff = parseInt(topMeterInput.value) - parseInt(bottomMeterInput.value);
-    let schoeetDiff = topSchoet - bottomSchoet;
-    let gender = genderSelect.value;
-    let threshold = (gender === "men") ? 150 : 100;
-  
-    let absMeterDiff = Math.abs(meterDiff);
-    let extraSchoet = Math.floor(absMeterDiff / threshold);
-  
+    let threshold = (genderSelect.value === "men") ? 150 : 100;
+    let extraSchoet = Math.floor(Math.abs(meterDiff) / threshold);
     if (meterDiff > 0) {
-      schoeetDiff += extraSchoet;
       meterDiff = meterDiff % threshold;
     } else if (meterDiff < 0) {
-      schoeetDiff -= extraSchoet;
-      let leftover = absMeterDiff % threshold;
-      meterDiff = -leftover;
+      meterDiff = - (Math.abs(meterDiff) % threshold);
     }
     
-    if (bottomTeam.classList.contains("green") && schoeetDiff > 0) {
-      schoeetDiff -= 0.5;
-    } else if (topTeam.classList.contains("green") && schoeetDiff < 0) {
-      schoeetDiff += 0.5;
-    }
-    
-    ergebnisSchoet.textContent = schoeetDiff.toFixed(1);
+    // Gesamt-Ergebnis: Differenz der Schöt-Zähler (die manuell über die Schöööööt! und -1 Buttons erhöht werden)
+    const totalDiff = topSchoet - bottomSchoet;
+    ergebnisSchoet.textContent = totalDiff.toFixed(1);
     ergebnisMeter.textContent = meterDiff.toFixed(0);
+    
     saveState();
   }
   
+  // Lade den gespeicherten Zustand beim Start
   loadState();
   
+  // "Zurück"-Button: Speichert den Zustand und navigiert zurück zur Gruppenselektionsseite
   const backBtn = document.createElement("button");
   backBtn.textContent = "Zurück";
   backBtn.style.padding = "10px 15px";
