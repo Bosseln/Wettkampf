@@ -346,6 +346,53 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   
+  // LOCK-MECHANISMUS: Verhindern, dass mehrere Nutzer die Seite gleichzeitig verwenden
+  const lockRef = db.ref('competitions/' + compId + '/groups/' + groupId + '/lock');
+  const clientId = Math.random().toString(36).substr(2, 9);
+  
+  lockRef.transaction(function(currentLock) {
+    if (currentLock === null) {
+      return clientId;
+    }
+    return;
+  }, function(error, committed, snapshot) {
+    if (error) {
+      console.error("Fehler beim Setzen des Locks:", error);
+      return;
+    }
+    if (!committed) {
+      alert("Diese Seite wird bereits von einer anderen Person verwendet.");
+      if (document.referrer) {
+        window.location.href = document.referrer;
+      }
+      return;
+    }
+    // Lock erfolgreich gesetzt
+    lockRef.onDisconnect().remove();
+    console.log("Lock erfolgreich gesetzt mit ID:", clientId);
+    
+    // Timeout-Mechanismus: Lock wird nach 1 Minute automatisch entfernt
+    const lockTimeout = setTimeout(() => {
+      lockRef.remove();
+      console.log("Lock wurde nach 1 Minute automatisch entfernt.");
+    }, 60000);
+    
+    // Entferne den Lock, wenn die Seite verlassen wird (Browser-Zurück, Schließen etc.)
+    window.addEventListener("beforeunload", () => {
+      lockRef.remove();
+      clearTimeout(lockTimeout);
+    });
+    
+    // Falls ein eigener "Zurück"-Button vorhanden ist, entferne den Lock auch dort
+    const backBtn = document.getElementById("backBtn");
+    if (backBtn) {
+      backBtn.addEventListener("click", () => {
+        lockRef.remove();
+        clearTimeout(lockTimeout);
+      });
+    }
+  });
+  
   // Element-Referenzen
   const topTeam = document.getElementById("topTeam");
   const bottomTeam = document.getElementById("bottomTeam");
@@ -605,6 +652,7 @@
   // Füge einen "Zurück"-Button hinzu, der beim Klicken den Zustand speichert und zur Gruppenselektionsseite zurückführt
   const backBtn = document.createElement("button");
   backBtn.textContent = "Zurück";
+  backBtn.id = "backBtn";
   backBtn.style.padding = "10px 15px";
   backBtn.style.fontSize = "1em";
   backBtn.style.cursor = "pointer";
