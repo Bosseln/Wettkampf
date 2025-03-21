@@ -78,7 +78,6 @@
         <td><input type="checkbox" id="holz1_top_cb0_14" /></td>
         <td><input type="checkbox" id="holz1_top_cb0_15" /></td>
       </tr>
-      <!-- Weitere Zeilen analog -->
       <tr>
         <td><input type="text" id="holz1_top_name1" placeholder="Werfer 2" /></td>
         <td><input type="checkbox" id="holz1_top_cb1_1" /></td>
@@ -285,8 +284,8 @@
   // Lese die Wettkampfdaten aus der URL (compId) – für diese Datei gilt die Gruppe "holz1"
   const params = new URLSearchParams(window.location.search);
   const compId = params.get("compId") || "Keine ID";
-  // Gruppen-ID für Holz 1:
-  const groupId = "holz1";
+  // Verwenden Sie hier einen eindeutigen Seiten-Identifier statt nur der Gruppen-ID:
+  const pageName = "holz1";
   
   // Firebase-Konfiguration – ggf. anpassen
   const firebaseConfig = {
@@ -301,6 +300,53 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
+  
+  // LOCK-MECHANISMUS: Nur ein Nutzer darf diese Seite (scoreboards/holz1) gleichzeitig verwenden
+  const lockRef = db.ref('competitions/' + compId + '/scoreboards/' + pageName + '/lock');
+  const clientId = Math.random().toString(36).substr(2, 9);
+  
+  lockRef.transaction(function(currentLock) {
+    if (currentLock === null) {
+      return clientId;
+    }
+    return;
+  }, function(error, committed, snapshot) {
+    if (error) {
+      console.error("Fehler beim Setzen des Locks:", error);
+      return;
+    }
+    if (!committed) {
+      alert("Diese Seite wird bereits von einer anderen Person verwendet.");
+      if (document.referrer) {
+        window.location.href = document.referrer;
+      }
+      return;
+    }
+    // Lock erfolgreich gesetzt
+    lockRef.onDisconnect().remove();
+    console.log("Lock erfolgreich gesetzt mit ID:", clientId);
+    
+    // Timeout-Mechanismus: Lock wird nach 1 Minute automatisch entfernt
+    const lockTimeout = setTimeout(() => {
+      lockRef.remove();
+      console.log("Lock wurde nach 1 Minute automatisch entfernt.");
+    }, 60000);
+    
+    // Entferne den Lock, wenn die Seite verlassen wird (Browser-Zurück, Schließen etc.)
+    window.addEventListener("beforeunload", () => {
+      lockRef.remove();
+      clearTimeout(lockTimeout);
+    });
+    
+    // Falls ein eigener "Zurück"-Button vorhanden ist, entferne den Lock auch dort
+    const backBtn = document.getElementById("backBtn");
+    if (backBtn) {
+      backBtn.addEventListener("click", () => {
+        lockRef.remove();
+        clearTimeout(lockTimeout);
+      });
+    }
+  });
   
   // Element-Referenzen
   const topTeam = document.getElementById("topTeam");
@@ -351,7 +397,7 @@
       upperTable: saveTable("upperTable"),
       lowerTable: saveTable("lowerTable")
     };
-    db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').set(state);
+    db.ref('competitions/' + compId + '/groups/holz1/scoreboard').set(state);
   }
   
   function saveTable(tableId) {
@@ -380,7 +426,7 @@
   
   // Lade Zustand aus Firebase
   function loadState() {
-    db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').once('value')
+    db.ref('competitions/' + compId + '/groups/holz1/scoreboard').once('value')
       .then(snapshot => {
         const state = snapshot.val();
         if (state) {
@@ -549,6 +595,7 @@
   
   const backBtn = document.createElement("button");
   backBtn.textContent = "Zurück";
+  backBtn.id = "backBtn";
   backBtn.style.padding = "10px 15px";
   backBtn.style.fontSize = "1em";
   backBtn.style.cursor = "pointer";
