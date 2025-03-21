@@ -326,11 +326,11 @@
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
 <script>
-  // Lese die Wettkampfdaten aus dem URL-Parameter (compId) – für diese Datei gilt die Gruppe "gummi2"
+  // Lese die Wettkampfdaten aus dem URL-Parameter (compId) – für diese Datei gilt die Gruppe "gummi1"
   const params = new URLSearchParams(window.location.search);
   const compId = params.get("compId") || "Keine ID";
-  // Für diese Datei ist die Gruppen-ID fest: gummi2
-  const groupId = "gummi2";
+  // Für das Scoreboard bleibt die Gruppen-ID "gummi1" für die Daten-Speicherung
+  const groupId = "gummi1";
   
   // Firebase-Konfiguration – ggf. anpassen
   const firebaseConfig = {
@@ -346,16 +346,16 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   
-  // LOCK-MECHANISMUS: Verhindern, dass mehrere Nutzer die Seite gleichzeitig verwenden
-  const lockRef = db.ref('competitions/' + compId + '/groups/' + groupId + '/lock');
+  // LOCK-MECHANISMUS: Nur ein Nutzer darf diese Seite (scoreboards/gummi2) gleichzeitig verwenden
+  // Hier verwenden wir einen separaten Lock-Pfad, der ausschließlich scoreboardgummi2 betrifft.
+  const pageName = "gummi2";
+  const lockRef = db.ref('competitions/' + compId + '/scoreboards/' + pageName + '/lock');
   const clientId = Math.random().toString(36).substr(2, 9);
   
   lockRef.transaction(function(currentLock) {
     if (currentLock === null) {
-      // Kein Lock vorhanden – setze den eigenen Lock
       return clientId;
     }
-    // Lock bereits vergeben
     return;
   }, function(error, committed, snapshot) {
     if (error) {
@@ -501,10 +501,7 @@
             bottomTeam.classList.remove("green");
           }
           
-          if (state.gender) {
-            genderSelect.value = state.gender;
-          }
-          
+          if (state.gender) genderSelect.value = state.gender;
           if (state.upperTable) loadTable("upperTable", state.upperTable);
           if (state.lowerTable) loadTable("lowerTable", state.lowerTable);
           ergebnisSchoet.textContent = state.resultSchoet || "0.0";
@@ -585,7 +582,6 @@
     calculateResult();
   });
   
-  // Neuer Button: "-1" oben
   topRemoveSchoetBtn.addEventListener("click", () => {
     if (topSchoet > 0) {
       topSchoet--;
@@ -594,7 +590,6 @@
     }
   });
   
-  // Neuer Button: "-1" unten
   bottomRemoveSchoetBtn.addEventListener("click", () => {
     if (bottomSchoet > 0) {
       bottomSchoet--;
@@ -606,16 +601,11 @@
   topMeterInput.addEventListener("input", calculateResult);
   bottomMeterInput.addEventListener("input", calculateResult);
   
-  // Fügt Event-Listener zu allen Input-Feldern in den Tabellen hinzu, sodass Änderungen sofort gespeichert werden
   function addTableInputListeners() {
     const upperInputs = document.querySelectorAll("#upperTable input");
-    upperInputs.forEach(input => {
-      input.addEventListener("change", calculateResult);
-    });
+    upperInputs.forEach(input => { input.addEventListener("change", calculateResult); });
     const lowerInputs = document.querySelectorAll("#lowerTable input");
-    lowerInputs.forEach(input => {
-      input.addEventListener("change", calculateResult);
-    });
+    lowerInputs.forEach(input => { input.addEventListener("change", calculateResult); });
   }
   addTableInputListeners();
   
@@ -648,13 +638,11 @@
     saveState();
   }
   
-  // Lade den gespeicherten Zustand beim Laden der Seite
   loadState();
   
-  // Füge einen "Zurück"-Button hinzu, der beim Klicken den Zustand speichert und zur Gruppenselektionsseite zurückführt
   const backBtn = document.createElement("button");
-  backBtn.id = "backBtn";
   backBtn.textContent = "Zurück";
+  backBtn.id = "backBtn";
   backBtn.style.padding = "10px 15px";
   backBtn.style.fontSize = "1em";
   backBtn.style.cursor = "pointer";
