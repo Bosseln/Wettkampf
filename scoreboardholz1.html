@@ -18,7 +18,7 @@
     .score-area { margin: 10px 0; font-size: 1.1em; }
     #genderSelect { margin-left: 10px; margin-right: 10px; }
     button#backBtn { padding: 10px 15px; font-size: 1em; cursor: pointer; margin-top: 20px; display: block; }
-    /* Der "-1" Button etwas kleiner */
+    /* Der "-1" Button soll etwas kleiner sein */
     .removeSchoetBtn { padding: 5px 10px; font-size: 0.9em; margin-left: 5px; cursor: pointer; }
   </style>
 </head>
@@ -176,7 +176,6 @@
       </tr>
     </thead>
     <tbody>
-      <!-- 5 Zeilen für das untere Team -->
       <tr>
         <td><input type="text" id="holz1_bottom_name0" placeholder="Werfer 1" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb0_1" /></td>
@@ -280,12 +279,16 @@
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
+<!-- Neue Bibliotheken für PDF-Konvertierung -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <script>
-  // Lese die Wettkampfdaten aus der URL (compId) – für diese Datei gilt die Gruppe "holz1"
+  // Lese die Wettkampfdaten aus dem URL-Parameter – für diese Datei gilt die Gruppe "holz2" (Scoreboard-Daten)
   const params = new URLSearchParams(window.location.search);
   const compId = params.get("compId") || "Keine ID";
-  // Verwenden Sie hier einen eindeutigen Seiten-Identifier statt nur der Gruppen-ID:
-  const pageName = "holz1";
+  // Für diese angepasste Datei soll nun die Holz1 Gruppe verwendet werden:
+  const groupId = "holz1";
   
   // Firebase-Konfiguration – ggf. anpassen
   const firebaseConfig = {
@@ -301,7 +304,9 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   
-  // LOCK-MECHANISMUS: Nur ein Nutzer darf diese Seite (scoreboards/holz1) gleichzeitig verwenden
+  // LOCK-MECHANISMUS: Nur ein Nutzer darf diese Seite (scoreboards/holz1) gleichzeitig verwenden.
+  // Hier verwenden wir einen separaten Lock-Pfad, der ausschließlich für scoreboardholz1 gilt.
+  const pageName = "holz1";
   const lockRef = db.ref('competitions/' + compId + '/scoreboards/' + pageName + '/lock');
   const clientId = Math.random().toString(36).substr(2, 9);
   
@@ -376,7 +381,7 @@
   let topSchoet = 0;
   let bottomSchoet = 0;
   
-  // Speichere den Zustand in Firebase
+  // Funktion zum Speichern des Zustands in Firebase (inkl. Tabellen und Ergebnis-Anzeige)
   function saveState() {
     const state = {
       topTeam: {
@@ -397,7 +402,7 @@
       upperTable: saveTable("upperTable"),
       lowerTable: saveTable("lowerTable")
     };
-    db.ref('competitions/' + compId + '/groups/holz1/scoreboard').set(state);
+    db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').set(state);
   }
   
   function saveTable(tableId) {
@@ -424,9 +429,9 @@
     return data;
   }
   
-  // Lade Zustand aus Firebase
+  // Funktion zum Laden des Zustands aus Firebase
   function loadState() {
-    db.ref('competitions/' + compId + '/groups/holz1/scoreboard').once('value')
+    db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').once('value')
       .then(snapshot => {
         const state = snapshot.val();
         if (state) {
@@ -604,6 +609,26 @@
     window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId);
   });
   document.body.appendChild(backBtn);
+  
+  // Neuer Konvertieren-Button: Erzeugt einen Screenshot der Seite und konvertiert diesen in ein PDF (halbe DIN-A4, 210x148,5 mm)
+  const convertBtn = document.createElement("button");
+  convertBtn.id = "convertBtn";
+  convertBtn.textContent = "Konvertieren zu PDF";
+  convertBtn.style.padding = "10px 15px";
+  convertBtn.style.fontSize = "1em";
+  convertBtn.style.cursor = "pointer";
+  document.body.appendChild(convertBtn);
+  
+  convertBtn.addEventListener("click", () => {
+    html2canvas(document.body, { scale: 2 }).then(canvas => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jspdf.jsPDF("p", "mm", [210, 148.5]);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save("screenshot.pdf");
+    });
+  });
 </script>
 </body>
 </html>
