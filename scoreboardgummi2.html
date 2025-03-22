@@ -5,66 +5,21 @@
   <title>Boßeln Scoreboard – Gummi 2</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    h1 {
-      margin-bottom: 10px;
-    }
-    .team-header {
-      color: #fff;
-      padding: 10px;
-      margin-bottom: 5px;
-    }
-    .red {
-      background-color: red;
-    }
-    .green {
-      background-color: green;
-    }
-    .table-container {
-      overflow-x: auto;
-      margin-bottom: 15px;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      max-width: 900px;
-    }
-    th, td {
-      border: 1px solid #000;
-      padding: 5px;
-      text-align: center;
-    }
-    input[type="text"] {
-      width: 100px;
-    }
-    input[type="number"] {
-      width: 60px;
-    }
-    .score-area {
-      margin: 10px 0;
-      font-size: 1.1em;
-    }
-    #genderSelect {
-      margin-left: 10px;
-      margin-right: 10px;
-    }
-    button#backBtn {
-      padding: 10px 15px;
-      font-size: 1em;
-      cursor: pointer;
-      margin-top: 20px;
-      display: block;
-    }
-    /* Der "Doch kein Schöt" Button soll nun "-1" heißen und etwas kleiner sein */
-    .removeSchoetBtn {
-      padding: 5px 10px;
-      font-size: 0.9em;
-      margin-left: 5px;
-      cursor: pointer;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { margin-bottom: 10px; }
+    .team-header { color: #fff; padding: 10px; margin-bottom: 5px; }
+    .red { background-color: red; }
+    .green { background-color: green; }
+    .table-container { overflow-x: auto; margin-bottom: 15px; }
+    table { border-collapse: collapse; width: 100%; max-width: 900px; }
+    th, td { border: 1px solid #000; padding: 5px; text-align: center; }
+    input[type="text"] { width: 100px; }
+    input[type="number"] { width: 60px; }
+    .score-area { margin: 10px 0; font-size: 1.1em; }
+    #genderSelect { margin-left: 10px; margin-right: 10px; }
+    button#backBtn { padding: 10px 15px; font-size: 1em; cursor: pointer; margin-top: 20px; display: block; }
+    /* Der "-1" Button soll etwas kleiner sein */
+    .removeSchoetBtn { padding: 5px 10px; font-size: 0.9em; margin-left: 5px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -104,7 +59,7 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Für das obere Team: 5 Zeilen (Werfer 1, Werfer 2, Werfer 3, Werfer 4, Ersatz 1) -->
+      <!-- 5 Zeilen: Werfer 1, Werfer 2, Werfer 3, Werfer 4, Ersatz 1 -->
       <tr>
         <td><input type="text" id="gummi2_top_name0" placeholder="Werfer 1" /></td>
         <td><input type="checkbox" id="gummi2_top_cb0_1" /></td>
@@ -221,7 +176,6 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Für das untere Team: 5 Zeilen -->
       <tr>
         <td><input type="text" id="gummi2_bottom_name0" placeholder="Werfer 1" /></td>
         <td><input type="checkbox" id="gummi2_bottom_cb0_1" /></td>
@@ -325,11 +279,15 @@
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
+<!-- Neue Bibliotheken für PDF-Konvertierung -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <script>
-  // Lese die Wettkampfdaten aus dem URL-Parameter (compId) – für diese Datei gilt die Gruppe "gummi1"
+  // Lese die Wettkampfdaten aus dem URL-Parameter – für diese Datei gilt die Gruppe "holz2" (dieser Pfad bleibt für Scoreboard-Daten unverändert)
   const params = new URLSearchParams(window.location.search);
   const compId = params.get("compId") || "Keine ID";
-  // Für das Scoreboard bleibt die Gruppen-ID "gummi1" für die Daten-Speicherung
+  // Für diese Datei ist die Gruppen-ID fest: gummi2 (diese Zeile wurde angepasst)
   const groupId = "gummi2";
   
   // Firebase-Konfiguration – ggf. anpassen
@@ -346,8 +304,8 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   
-  // LOCK-MECHANISMUS: Nur ein Nutzer darf diese Seite (scoreboards/gummi2) gleichzeitig verwenden
-  // Hier verwenden wir einen separaten Lock-Pfad, der ausschließlich scoreboardgummi2 betrifft.
+  // LOCK-MECHANISMUS: Nur ein Nutzer darf diese Seite (scoreboards/gummi2) gleichzeitig verwenden.
+  // Hier verwenden wir einen separaten Lock-Pfad, der ausschließlich für scoreboardgummi2 gilt.
   const pageName = "gummi2";
   const lockRef = db.ref('competitions/' + compId + '/scoreboards/' + pageName + '/lock');
   const clientId = Math.random().toString(36).substr(2, 9);
@@ -651,6 +609,26 @@
     window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId);
   });
   document.body.appendChild(backBtn);
+  
+  // Neuer Konvertieren-Button: Erzeugt einen Screenshot der Seite und konvertiert diesen in ein PDF (halbe DIN-A4, 210x148,5 mm)
+  const convertBtn = document.createElement("button");
+  convertBtn.id = "convertBtn";
+  convertBtn.textContent = "Konvertieren zu PDF";
+  convertBtn.style.padding = "10px 15px";
+  convertBtn.style.fontSize = "1em";
+  convertBtn.style.cursor = "pointer";
+  document.body.appendChild(convertBtn);
+  
+  convertBtn.addEventListener("click", () => {
+    html2canvas(document.body, { scale: 2 }).then(canvas => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jspdf.jsPDF("p", "mm", [210, 148.5]);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save("screenshot.pdf");
+    });
+  });
 </script>
 </body>
 </html>
