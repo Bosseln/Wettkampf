@@ -47,7 +47,7 @@
   &nbsp;Meter: <input type="number" id="topMeterInput" value="0" />
 </div>
 
-<!-- Tabelle für das obere Team -->
+<!-- Tabelle für das obere Team (Heimteam) -->
 <div class="table-container">
   <table id="upperTable">
     <thead>
@@ -59,7 +59,7 @@
       </tr>
     </thead>
     <tbody>
-      <!-- 5 Zeilen: Werfer 1, Werfer 2, Werfer 3, Werfer 4, Ersatz 1 -->
+      <!-- Zeile 1 -->
       <tr>
         <td><input type="text" id="holz1_top_name0" placeholder="Werfer 1" /></td>
         <td><input type="checkbox" id="holz1_top_cb0_1" /></td>
@@ -78,6 +78,7 @@
         <td><input type="checkbox" id="holz1_top_cb0_14" /></td>
         <td><input type="checkbox" id="holz1_top_cb0_15" /></td>
       </tr>
+      <!-- Zeile 2 -->
       <tr>
         <td><input type="text" id="holz1_top_name1" placeholder="Werfer 2" /></td>
         <td><input type="checkbox" id="holz1_top_cb1_1" /></td>
@@ -96,6 +97,7 @@
         <td><input type="checkbox" id="holz1_top_cb1_14" /></td>
         <td><input type="checkbox" id="holz1_top_cb1_15" /></td>
       </tr>
+      <!-- Zeile 3 -->
       <tr>
         <td><input type="text" id="holz1_top_name2" placeholder="Werfer 3" /></td>
         <td><input type="checkbox" id="holz1_top_cb2_1" /></td>
@@ -114,6 +116,7 @@
         <td><input type="checkbox" id="holz1_top_cb2_14" /></td>
         <td><input type="checkbox" id="holz1_top_cb2_15" /></td>
       </tr>
+      <!-- Zeile 4 -->
       <tr>
         <td><input type="text" id="holz1_top_name3" placeholder="Werfer 4" /></td>
         <td><input type="checkbox" id="holz1_top_cb3_1" /></td>
@@ -132,6 +135,7 @@
         <td><input type="checkbox" id="holz1_top_cb3_14" /></td>
         <td><input type="checkbox" id="holz1_top_cb3_15" /></td>
       </tr>
+      <!-- Zeile 5 -->
       <tr>
         <td><input type="text" id="holz1_top_name4" placeholder="Ersatz 1" /></td>
         <td><input type="checkbox" id="holz1_top_cb4_1" /></td>
@@ -154,7 +158,7 @@
   </table>
 </div>
 
-<!-- Unteres Team (Führung) -->
+<!-- Unteres Team (Auswärtsteam) -->
 <div id="bottomTeam" class="team-header green">
   <button id="bottomTeamToggleBtn">Führung</button>
   <input type="text" id="bottomVerein" placeholder="Verein eintragen..." />
@@ -176,6 +180,7 @@
       </tr>
     </thead>
     <tbody>
+      <!-- Zeile 1 -->
       <tr>
         <td><input type="text" id="holz1_bottom_name0" placeholder="Werfer 1" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb0_1" /></td>
@@ -194,6 +199,7 @@
         <td><input type="checkbox" id="holz1_bottom_cb0_14" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb0_15" /></td>
       </tr>
+      <!-- Zeile 2 -->
       <tr>
         <td><input type="text" id="holz1_bottom_name1" placeholder="Werfer 2" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb1_1" /></td>
@@ -212,6 +218,7 @@
         <td><input type="checkbox" id="holz1_bottom_cb1_14" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb1_15" /></td>
       </tr>
+      <!-- Zeile 3 -->
       <tr>
         <td><input type="text" id="holz1_bottom_name2" placeholder="Werfer 3" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb2_1" /></td>
@@ -230,6 +237,7 @@
         <td><input type="checkbox" id="holz1_bottom_cb2_14" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb2_15" /></td>
       </tr>
+      <!-- Zeile 4 -->
       <tr>
         <td><input type="text" id="holz1_bottom_name3" placeholder="Werfer 4" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb3_1" /></td>
@@ -248,6 +256,7 @@
         <td><input type="checkbox" id="holz1_bottom_cb3_14" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb3_15" /></td>
       </tr>
+      <!-- Zeile 5 -->
       <tr>
         <td><input type="text" id="holz1_bottom_name4" placeholder="Ersatz 1" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb4_1" /></td>
@@ -270,27 +279,25 @@
   </table>
 </div>
 
-<!-- Ergebnis-Anzeige -->
+<!-- Ergebnis-Anzeige (nur zur Anzeige der aktuellen Differenz; die Checkbox-Zählung läuft im Hintergrund) -->
 <div class="score-area">
   <strong>Ergebnis Schoet:</strong> <span id="ergebnisSchoet">0.0</span><br />
   <strong>Ergebnis Meter:</strong> <span id="ergebnisMeter">0</span>
 </div>
 
-<!-- Firebase SDKs -->
+<!-- Firebase SDKs und PDF-Konvertierung -->
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
-<!-- Neue Bibliotheken für PDF-Konvertierung -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-  // Lese die Wettkampfdaten aus dem URL-Parameter – für diese Datei gilt die Gruppe "holz2" (Scoreboard-Daten)
+  // Lese Wettkampfdaten aus URL-Parameter; Gruppe ist nun "holz1"
   const params = new URLSearchParams(window.location.search);
   const compId = params.get("compId") || "Keine ID";
-  // Für diese angepasste Datei soll nun die Holz1 Gruppe verwendet werden:
   const groupId = "holz1";
   
-  // Firebase-Konfiguration – ggf. anpassen
+  // Firebase-Konfiguration
   const firebaseConfig = {
     apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
     authDomain: "wettkampf-f6f92.firebaseapp.com",
@@ -304,8 +311,7 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   
-  // LOCK-MECHANISMUS: Nur ein Nutzer darf diese Seite (scoreboards/holz1) gleichzeitig verwenden.
-  // Hier verwenden wir einen separaten Lock-Pfad, der ausschließlich für scoreboardholz1 gilt.
+  // LOCK-MECHANISMUS für diese Seite (Holz 1)
   const pageName = "holz1";
   const lockRef = db.ref('competitions/' + compId + '/scoreboards/' + pageName + '/lock');
   const clientId = Math.random().toString(36).substr(2, 9);
@@ -327,23 +333,16 @@
       }
       return;
     }
-    // Lock erfolgreich gesetzt
     lockRef.onDisconnect().remove();
     console.log("Lock erfolgreich gesetzt mit ID:", clientId);
-    
-    // Timeout-Mechanismus: Lock wird nach 1 Minute automatisch entfernt
     const lockTimeout = setTimeout(() => {
       lockRef.remove();
       console.log("Lock wurde nach 1 Minute automatisch entfernt.");
     }, 60000);
-    
-    // Entferne den Lock, wenn die Seite verlassen wird (Browser-Zurück, Schließen etc.)
     window.addEventListener("beforeunload", () => {
       lockRef.remove();
       clearTimeout(lockTimeout);
     });
-    
-    // Falls ein eigener "Zurück"-Button vorhanden ist, entferne den Lock auch dort
     const backBtn = document.getElementById("backBtn");
     if (backBtn) {
       backBtn.addEventListener("click", () => {
@@ -356,32 +355,37 @@
   // Element-Referenzen
   const topTeam = document.getElementById("topTeam");
   const bottomTeam = document.getElementById("bottomTeam");
-  
   const topTeamToggleBtn = document.getElementById("topTeamToggleBtn");
   const bottomTeamToggleBtn = document.getElementById("bottomTeamToggleBtn");
-  
   const topSchoetBtn = document.getElementById("topSchoetBtn");
   const bottomSchoetBtn = document.getElementById("bottomSchoetBtn");
-  
   const topRemoveSchoetBtn = document.getElementById("topRemoveSchoetBtn");
   const bottomRemoveSchoetBtn = document.getElementById("bottomRemoveSchoetBtn");
-  
   const topSchoetDisplay = document.getElementById("topSchoetDisplay");
   const bottomSchoetDisplay = document.getElementById("bottomSchoetDisplay");
-  
   const topMeterInput = document.getElementById("topMeterInput");
   const bottomMeterInput = document.getElementById("bottomMeterInput");
-  
   const ergebnisSchoet = document.getElementById("ergebnisSchoet");
   const ergebnisMeter = document.getElementById("ergebnisMeter");
-  
   const genderSelect = document.getElementById("genderSelect");
   
-  // Globale Variablen
+  // Globale Variablen für Schöt-Zähler
   let topSchoet = 0;
   let bottomSchoet = 0;
   
-  // Funktion zum Speichern des Zustands in Firebase (inkl. Tabellen und Ergebnis-Anzeige)
+  // Globale Variablen zur Speicherung der vorherigen Checkbox-Zählung
+  let prevUpper = 0;
+  let prevLower = 0;
+  
+  // Hilfsfunktion: Zählt die abgehakten Checkboxen in einer Tabelle
+  function countChecked(tableId) {
+    const checkboxes = document.querySelectorAll(`# input[type="checkbox"]`);
+    let count = 0;
+    checkboxes.forEach(cb => { if (cb.checked) count++; });
+    return count;
+  }
+  
+  // Funktion zum Speichern des Zustands inklusive der gezählten Checkboxen
   function saveState() {
     const state = {
       topTeam: {
@@ -400,7 +404,9 @@
       resultMeter: ergebnisMeter.textContent,
       gender: genderSelect.value,
       upperTable: saveTable("upperTable"),
-      lowerTable: saveTable("lowerTable")
+      lowerTable: saveTable("lowerTable"),
+      upperCount: countChecked("upperTable"),
+      lowerCount: countChecked("lowerTable")
     };
     db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').set(state);
   }
@@ -465,6 +471,9 @@
           ergebnisSchoet.textContent = state.resultSchoet || "0.0";
           ergebnisMeter.textContent = state.resultMeter || "0";
           calculateResult();
+          // Setze die vorherigen Zähler auf den aktuellen Stand
+          prevUpper = countChecked("upperTable");
+          prevLower = countChecked("lowerTable");
         }
       })
       .catch(err => {
@@ -491,82 +500,51 @@
     }
   }
   
-  // Event-Listener für die Team-Bereiche
-  topTeamToggleBtn.addEventListener("click", () => {
-    if (topTeam.classList.contains("red")) {
-      topTeam.classList.remove("red");
-      topTeam.classList.add("green");
-    } else {
-      topTeam.classList.remove("green");
-      topTeam.classList.add("red");
+  // Logik für Führungwechsel und zusätzliche Schöt-Vergabe
+  function checkConsecutiveThrows() {
+    const currentUpper = countChecked("upperTable");
+    const currentLower = countChecked("lowerTable");
+    const deltaUpper = currentUpper - prevUpper;
+    const deltaLower = currentLower - prevLower;
+    
+    // Beispiel: Wenn das Auswärtsteam (untere Tabelle) mindestens 2 neue Würfe erzielt hat und das Heimteam (obere Tabelle) keine
+    if (deltaLower >= 2 && deltaUpper === 0) {
+      // Falls das Heimteam noch nicht führt, wechselt die Führung zum Heimteam
+      if (!topTeam.classList.contains("green")) {
+        topTeam.classList.add("green");
+        bottomTeam.classList.remove("green");
+        topTeam.classList.remove("red");
+        bottomTeam.classList.add("red");
+        console.log("Führung gewechselt: Heimteam erhält Führung.");
+      } else {
+        // Falls das Heimteam bereits führt, bekommt es einen zusätzlichen Schöt
+        topSchoet++;
+        topSchoetDisplay.textContent = topSchoet;
+        console.log("Heimteam führt bereits – erhält einen zusätzlichen Schöt.");
+      }
+      prevUpper = currentUpper;
+      prevLower = currentLower;
     }
-    if (bottomTeam.classList.contains("green")) {
-      bottomTeam.classList.remove("green");
-      bottomTeam.classList.add("red");
-    } else {
-      bottomTeam.classList.remove("red");
-      bottomTeam.classList.add("green");
+    // Analog: Wenn das Heimteam (obere Tabelle) mindestens 2 neue Würfe erzielt und das Auswärtsteam nichts hinzufügt
+    else if (deltaUpper >= 2 && deltaLower === 0) {
+      if (!bottomTeam.classList.contains("green")) {
+        bottomTeam.classList.add("green");
+        topTeam.classList.remove("green");
+        bottomTeam.classList.remove("red");
+        topTeam.classList.add("red");
+        console.log("Führung gewechselt: Auswärtsteam erhält Führung.");
+      } else {
+        bottomSchoet++;
+        bottomSchoetDisplay.textContent = bottomSchoet;
+        console.log("Auswärtsteam führt bereits – erhält einen zusätzlichen Schöt.");
+      }
+      prevUpper = currentUpper;
+      prevLower = currentLower;
     }
-    calculateResult();
-  });
-  
-  bottomTeamToggleBtn.addEventListener("click", () => {
-    if (bottomTeam.classList.contains("green")) {
-      bottomTeam.classList.remove("green");
-      bottomTeam.classList.add("red");
-    } else {
-      bottomTeam.classList.remove("red");
-      bottomTeam.classList.add("green");
-    }
-    if (topTeam.classList.contains("red")) {
-      topTeam.classList.remove("red");
-      topTeam.classList.add("green");
-    } else {
-      topTeam.classList.remove("green");
-      topTeam.classList.add("red");
-    }
-    calculateResult();
-  });
-  
-  topSchoetBtn.addEventListener("click", () => {
-    topSchoet++;
-    topSchoetDisplay.textContent = topSchoet;
-    calculateResult();
-  });
-  
-  bottomSchoetBtn.addEventListener("click", () => {
-    bottomSchoet++;
-    bottomSchoetDisplay.textContent = bottomSchoet;
-    calculateResult();
-  });
-  
-  topRemoveSchoetBtn.addEventListener("click", () => {
-    if (topSchoet > 0) {
-      topSchoet--;
-      topSchoetDisplay.textContent = topSchoet;
-      calculateResult();
-    }
-  });
-  
-  bottomRemoveSchoetBtn.addEventListener("click", () => {
-    if (bottomSchoet > 0) {
-      bottomSchoet--;
-      bottomSchoetDisplay.textContent = bottomSchoet;
-      calculateResult();
-    }
-  });
-  
-  topMeterInput.addEventListener("input", calculateResult);
-  bottomMeterInput.addEventListener("input", calculateResult);
-  
-  function addTableInputListeners() {
-    const upperInputs = document.querySelectorAll("#upperTable input");
-    upperInputs.forEach(input => { input.addEventListener("change", calculateResult); });
-    const lowerInputs = document.querySelectorAll("#lowerTable input");
-    lowerInputs.forEach(input => { input.addEventListener("change", calculateResult); });
+    // Falls beide Teams neue Würfe hinzugefügt haben oder weniger als 2 in Folge, wird nichts besonderes getriggert.
   }
-  addTableInputListeners();
   
+  // calculateResult() berechnet zunächst die regulären Differenzen und ruft dann checkConsecutiveThrows() auf
   function calculateResult() {
     let meterDiff = parseInt(topMeterInput.value) - parseInt(bottomMeterInput.value);
     let schoeetDiff = topSchoet - bottomSchoet;
@@ -593,6 +571,11 @@
     
     ergebnisSchoet.textContent = schoeetDiff.toFixed(1);
     ergebnisMeter.textContent = meterDiff.toFixed(0);
+    
+    // Prüfe, ob ein Team 2 neue Würfe gemacht hat, während das andere nichts erzielt hat
+    checkConsecutiveThrows();
+    
+    // Speichere den Zustand inklusive der gezählten Checkboxen
     saveState();
   }
   
@@ -610,7 +593,7 @@
   });
   document.body.appendChild(backBtn);
   
-  // Neuer Konvertieren-Button: Erzeugt einen Screenshot der Seite und konvertiert diesen in ein PDF (halbe DIN-A4, 210x148,5 mm)
+  // Konvertieren-Button: Screenshot der Seite wird in ein PDF (halbe DIN-A4) umgewandelt
   const convertBtn = document.createElement("button");
   convertBtn.id = "convertBtn";
   convertBtn.textContent = "Konvertieren zu PDF";
