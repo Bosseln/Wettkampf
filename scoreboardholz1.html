@@ -279,7 +279,7 @@
   </table>
 </div>
 
-<!-- Ergebnis-Anzeige (nur Differenzanzeige) -->
+<!-- Ergebnis-Anzeige (nur zur Differenzanzeige) -->
 <div class="score-area">
   <strong>Ergebnis Schoet:</strong> <span id="ergebnisSchoet">0.0</span><br />
   <strong>Ergebnis Meter:</strong> <span id="ergebnisMeter">0</span>
@@ -292,12 +292,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-  // Lese Wettkampfdaten aus URL-Parameter; Gruppe ist "holz1"
+  // Lese Wettkampfdaten aus URL-Parameter; Gruppe = "holz1"
   const params = new URLSearchParams(window.location.search);
   const compId = params.get("compId") || "Keine ID";
   const groupId = "holz1";
   
-  // Firebase-Initialisierung (nur wenn noch nicht initialisiert)
+  // Firebase-Initialisierung (nur einmal)
   if (!firebase.apps.length) {
     firebase.initializeApp({
       apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
@@ -312,11 +312,10 @@
   }
   const db = firebase.database();
   
-  // LOCK-MECHANISMUS: Nur ein Nutzer darf diese Seite gleichzeitig verwenden
+  // LOCK-MECHANISMUS
   const pageName = "holz1";
   const lockRef = db.ref('competitions/' + compId + '/scoreboards/' + pageName + '/lock');
   const clientId = Math.random().toString(36).substr(2, 9);
-  
   lockRef.transaction(function(currentLock) {
     if (currentLock === null) {
       return clientId;
@@ -373,11 +372,11 @@
   // Globale Variablen für Schöt-Zähler
   let topSchoet = 0;
   let bottomSchoet = 0;
-  // Globale Variablen zur Speicherung der vorherigen Checkbox-Zählung
+  // Globale Variablen für vorherige Checkbox-Zählung
   let prevUpper = 0;
   let prevLower = 0;
   
-  // Hilfsfunktion: Zählt die abgehakten Checkboxen in einer Tabelle
+  // Hilfsfunktion: Zählt die gecheckten Checkboxen in einer Tabelle
   function countChecked(tableId) {
     const checkboxes = document.querySelectorAll(`# input[type="checkbox"]`);
     let count = 0;
@@ -385,7 +384,7 @@
     return count;
   }
   
-  // Funktion zum Speichern des Zustands inklusive der gezählten Checkboxen
+  // Funktion zum Speichern des Zustands (ohne Checkbox-Zählung in der Anzeige)
   function saveState() {
     const state = {
       topTeam: {
@@ -404,9 +403,7 @@
       resultMeter: ergebnisMeter.textContent,
       gender: genderSelect.value,
       upperTable: saveTable("upperTable"),
-      lowerTable: saveTable("lowerTable"),
-      upperCount: countChecked("upperTable"),
-      lowerCount: countChecked("lowerTable")
+      lowerTable: saveTable("lowerTable")
     };
     db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').set(state);
   }
@@ -435,7 +432,7 @@
     return data;
   }
   
-  // Funktion zum Laden des Zustands aus Firebase
+  // Funktion zum Laden des Zustands aus Firebase und Setzen der prev‑Werte
   function loadState() {
     db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').once('value')
       .then(snapshot => {
@@ -471,7 +468,7 @@
           ergebnisSchoet.textContent = state.resultSchoet || "0.0";
           ergebnisMeter.textContent = state.resultMeter || "0";
           calculateResult();
-          // Setze die vorherigen Zähler auf den aktuellen Stand
+          // Setze prev‑Zähler auf aktuellen Stand
           prevUpper = countChecked("upperTable");
           prevLower = countChecked("lowerTable");
         }
@@ -576,40 +573,45 @@
   }
   addTableInputListeners();
   
-  // Neue Logik: Prüfe, ob ein Team 2 neue Würfe erzielt, während das andere nichts hinzufügt
+  // Neue Funktion: Prüft, ob ein Team mindestens 2 neue Würfe (Checkboxen) erzielt hat, während das andere Team nichts neu hat.
+  // Im Fall von 2 neuen Würfen beim Auswärtsteam (untere Tabelle) erhält das Heimteam (obere Tabelle) – falls es noch nicht führt – die Führung; falls es bereits führt, bekommt es einen zusätzlichen Schöt.
+  // Analog bei 2 neuen Würfen beim Heimteam.
   function checkConsecutiveThrows() {
     const currentUpper = countChecked("upperTable");
     const currentLower = countChecked("lowerTable");
     const deltaUpper = currentUpper - prevUpper;
     const deltaLower = currentLower - prevLower;
     
-    // Wenn das Auswärtsteam (untere Tabelle) mindestens 2 neue Würfe hat und das Heimteam (obere Tabelle) keinen neuen Wurf:
+    // Wenn das Auswärtsteam (untere Tabelle) 2 oder mehr neue Würfe hat und das Heimteam (obere Tabelle) nichts neu dazugekommen ist:
     if (deltaLower >= 2 && deltaUpper === 0) {
-      // Falls das Heimteam noch nicht führt, wechselt die Führung zum Heimteam
       if (!topTeam.classList.contains("green")) {
+        // Wechsle Führung: Heimteam erhält Führung
         topTeam.classList.add("green");
-        bottomTeam.classList.remove("green");
         topTeam.classList.remove("red");
         bottomTeam.classList.add("red");
+        bottomTeam.classList.remove("green");
         console.log("Führung gewechselt: Heimteam erhält Führung.");
       } else {
-        // Falls das Heimteam bereits führt, bekommt es einen zusätzlichen Schöt
+        // Falls Heimteam bereits führt, erhöhter Schöt
         topSchoet++;
         topSchoetDisplay.textContent = topSchoet;
         console.log("Heimteam führt bereits – erhält einen zusätzlichen Schöt.");
       }
+      // Aktualisiere die vorherigen Zähler
       prevUpper = currentUpper;
       prevLower = currentLower;
     }
-    // Analog: Wenn das Heimteam (obere Tabelle) mindestens 2 neue Würfe erzielt und das Auswärtsteam (untere Tabelle) keinen neuen Wurf:
+    // Wenn das Heimteam (obere Tabelle) 2 oder mehr neue Würfe hat und das Auswärtsteam (untere Tabelle) nichts neu hat:
     else if (deltaUpper >= 2 && deltaLower === 0) {
       if (!bottomTeam.classList.contains("green")) {
+        // Wechsle Führung: Auswärtsteam erhält Führung
         bottomTeam.classList.add("green");
-        topTeam.classList.remove("green");
         bottomTeam.classList.remove("red");
         topTeam.classList.add("red");
+        topTeam.classList.remove("green");
         console.log("Führung gewechselt: Auswärtsteam erhält Führung.");
       } else {
+        // Falls Auswärtsteam bereits führt, erhöhter Schöt
         bottomSchoet++;
         bottomSchoetDisplay.textContent = bottomSchoet;
         console.log("Auswärtsteam führt bereits – erhält einen zusätzlichen Schöt.");
@@ -617,10 +619,10 @@
       prevUpper = currentUpper;
       prevLower = currentLower;
     }
-    // Falls beide Teams neue Würfe hinzugefügt haben oder weniger als 2 in Folge, werden die prev‑Werte nicht verändert.
+    // Sonst: keine Änderung an den prev‑Werten
   }
   
-  // calculateResult() berechnet zuerst die regulären Differenzen und ruft dann checkConsecutiveThrows() auf
+  // calculateResult() – berechnet die Differenzen, ruft dann checkConsecutiveThrows() auf und speichert den Zustand
   function calculateResult() {
     let meterDiff = parseInt(topMeterInput.value) - parseInt(bottomMeterInput.value);
     let schoeetDiff = topSchoet - bottomSchoet;
@@ -651,7 +653,7 @@
     // Prüfe, ob ein Team 2 neue Würfe erzielt hat, während das andere nichts hinzugefügt hat
     checkConsecutiveThrows();
     
-    // Speichere den Zustand inklusive der Checkbox-Zählung
+    // Speichere den Zustand in Firebase
     saveState();
   }
   
