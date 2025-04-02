@@ -121,7 +121,8 @@
               box.style.cursor = "pointer";
               box.addEventListener("click", () => {
                 window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
-                                        "&compName=" + encodeURIComponent(compName);
+                                        "&compName=" + encodeURIComponent(competitionName) +
+                                        "&role=schreiber";
               });
             } else {
               box.style.cursor = "default";
@@ -138,7 +139,8 @@
               box.style.cursor = "pointer";
               box.addEventListener("click", () => {
                 window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
-                                        "&compName=" + encodeURIComponent(compName);
+                                        "&compName=" + encodeURIComponent(competitionName) +
+                                        "&role=schreiber";
               });
             } else {
               box.style.cursor = "default";
