@@ -69,12 +69,21 @@
     const db = firebase.database();
     
     // Lese compId und compName aus der URL, z. B. ?compId=ABC123&compName=MeinWettkampf
-    // Lese compId aus der URL
     const params = new URLSearchParams(window.location.search);
-      const compId = params.get("compId") || "Keine ID";
-      document.getElementById("compIdDisplay").textContent = compId;
-      const compName = params.get("compName") || "Kein Name";
-      document.getElementById("compNameDisplay").textContent = compName;
+        const compId = params.get("compId") || "Keine ID";
+        const role = params.get("role") || "zuschauer";
+        document.getElementById("compIdDisplay").textContent = compId;
+        
+        let competitionName = "";
+        db.ref('competitions/' + compId + '/name').once('value')
+          .then(snapshot => {
+            competitionName = snapshot.val() || "Kein Name";
+            document.getElementById("compNameDisplay").textContent = competitionName;
+          })
+          .catch(error => {
+            console.error("Fehler beim Laden des Wettkampfnamens:", error);
+          });
+      });
     
     // Definiere die Gruppen und deren Zielseiten
     const groups = [
@@ -108,7 +117,7 @@
             // In diesem Fall ersetzen wir den bisherigen Text durch:
             // Oben: Gruppenname in den gleichen Stilen wie früher der Text "Ergebnis:" 
             // Unten: Nur der Ergebniswert
-            box.innerHTML = `<div class="groupName">${g.name}</div><div>${result}</div>`;
+            box.innerHTML = `<div class="groupName"></div><div></div>`;
             if (role === "schreiber") {
               box.style.cursor = "pointer";
               box.addEventListener("click", () => {
@@ -125,7 +134,7 @@
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = "gray";
-            box.innerHTML = `<div class="groupName">${g.name}</div><div>${result}</div>`;
+            box.innerHTML = `<div class="groupName"></div><div></div>`;
             if (role === "schreiber") {
               box.style.cursor = "pointer";
               box.addEventListener("click", () => {
