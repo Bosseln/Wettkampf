@@ -69,20 +69,11 @@
     const db = firebase.database();
     
     // Lese compId und compName aus der URL, z. B. ?compId=ABC123&compName=MeinWettkampf
-    // Lese compId aus der URL
     const params = new URLSearchParams(window.location.search);
     const compId = params.get("compId") || "Keine ID";
+    const compName = params.get("compName") || "Kein Name";
     document.getElementById("compIdDisplay").textContent = compId;
-    
-    // Lade den Wettkampfnamen aus Firebase anhand der compId
-    db.ref('competitions/' + compId + '/name').once('value')
-      .then(snapshot => {
-        const compNameFromFirebase = snapshot.val() || "Kein Name";
-        document.getElementById("compNameDisplay").textContent = compNameFromFirebase;
-      })
-      .catch(error => {
-        console.error("Fehler beim Laden des Wettkampfnamens:", error);
-      });
+    document.getElementById("compNameDisplay").textContent = compName;
     
     // Definiere die Gruppen und deren Zielseiten
     const groups = [
@@ -117,15 +108,10 @@
             // Oben: Gruppenname in den gleichen Stilen wie früher der Text "Ergebnis:" 
             // Unten: Nur der Ergebniswert
             box.innerHTML = `<div class="groupName">${g.name}</div><div>${result}</div>`;
-            if (role === "schreiber") {
-              box.style.cursor = "pointer";
-              box.addEventListener("click", () => {
-                window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
-                                        "&compName=" + encodeURIComponent(compName);
-              });
-            } else {
-              box.style.cursor = "default";
-            }
+            box.addEventListener("click", () => {
+              window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
+                                      "&compName=" + encodeURIComponent(compName);
+            });
             groupBoxesContainer.appendChild(box);
           })
           .catch(err => {
@@ -134,15 +120,10 @@
             box.className = "groupBox";
             box.style.backgroundColor = "gray";
             box.innerHTML = `<div class="groupName">${g.name}</div><div>${result}</div>`;
-            if (role === "schreiber") {
-              box.style.cursor = "pointer";
-              box.addEventListener("click", () => {
-                window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
-                                        "&compName=" + encodeURIComponent(compName);
-              });
-            } else {
-              box.style.cursor = "default";
-            }
+            box.addEventListener("click", () => {
+              window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
+                                      "&compName=" + encodeURIComponent(compName);
+            });
             groupBoxesContainer.appendChild(box);
           });
       });
@@ -156,15 +137,6 @@
     
     // Button zum sofortigen Aktualisieren
     document.getElementById("refreshBtn").addEventListener("click", updateGroupBoxes);
-    const backBtn = document.createElement("button");
-    backBtn.textContent = "Zurück zur Startseite";
-    backBtn.style.padding = "10px 15px";
-    backBtn.style.fontSize = "1em";
-    backBtn.style.cursor = "pointer";
-    backBtn.addEventListener("click", () => {
-      window.location.href = "index.html";
-    });
-    document.body.appendChild(backBtn);
   </script>
 </body>
 </html>
