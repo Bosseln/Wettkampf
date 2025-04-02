@@ -37,7 +37,7 @@
 
 <br>
 
-<!-- Oberes Team (Heimteam) -->
+<!-- Oberes Team (Führung) -->
 <div id="topTeam" class="team-header red">
   <button id="topTeamToggleBtn">Führung</button>
   <input type="text" id="topVerein" placeholder="Verein eintragen..." />
@@ -59,7 +59,7 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Zeile 1 -->
+      <!-- 5 Zeilen: Werfer 1, Werfer 2, Werfer 3, Werfer 4, Ersatz 1 -->
       <tr>
         <td><input type="text" id="holz1_top_name0" placeholder="Werfer 1" /></td>
         <td><input type="checkbox" id="holz1_top_cb0_1" /></td>
@@ -78,7 +78,6 @@
         <td><input type="checkbox" id="holz1_top_cb0_14" /></td>
         <td><input type="checkbox" id="holz1_top_cb0_15" /></td>
       </tr>
-      <!-- Zeile 2 -->
       <tr>
         <td><input type="text" id="holz1_top_name1" placeholder="Werfer 2" /></td>
         <td><input type="checkbox" id="holz1_top_cb1_1" /></td>
@@ -97,7 +96,6 @@
         <td><input type="checkbox" id="holz1_top_cb1_14" /></td>
         <td><input type="checkbox" id="holz1_top_cb1_15" /></td>
       </tr>
-      <!-- Zeile 3 -->
       <tr>
         <td><input type="text" id="holz1_top_name2" placeholder="Werfer 3" /></td>
         <td><input type="checkbox" id="holz1_top_cb2_1" /></td>
@@ -116,7 +114,6 @@
         <td><input type="checkbox" id="holz1_top_cb2_14" /></td>
         <td><input type="checkbox" id="holz1_top_cb2_15" /></td>
       </tr>
-      <!-- Zeile 4 -->
       <tr>
         <td><input type="text" id="holz1_top_name3" placeholder="Werfer 4" /></td>
         <td><input type="checkbox" id="holz1_top_cb3_1" /></td>
@@ -135,7 +132,6 @@
         <td><input type="checkbox" id="holz1_top_cb3_14" /></td>
         <td><input type="checkbox" id="holz1_top_cb3_15" /></td>
       </tr>
-      <!-- Zeile 5 -->
       <tr>
         <td><input type="text" id="holz1_top_name4" placeholder="Ersatz 1" /></td>
         <td><input type="checkbox" id="holz1_top_cb4_1" /></td>
@@ -158,7 +154,7 @@
   </table>
 </div>
 
-<!-- Unteres Team (Auswärtsteam) -->
+<!-- Unteres Team (Führung) -->
 <div id="bottomTeam" class="team-header green">
   <button id="bottomTeamToggleBtn">Führung</button>
   <input type="text" id="bottomVerein" placeholder="Verein eintragen..." />
@@ -180,7 +176,6 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Zeile 1 -->
       <tr>
         <td><input type="text" id="holz1_bottom_name0" placeholder="Werfer 1" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb0_1" /></td>
@@ -199,7 +194,6 @@
         <td><input type="checkbox" id="holz1_bottom_cb0_14" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb0_15" /></td>
       </tr>
-      <!-- Zeile 2 -->
       <tr>
         <td><input type="text" id="holz1_bottom_name1" placeholder="Werfer 2" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb1_1" /></td>
@@ -218,7 +212,6 @@
         <td><input type="checkbox" id="holz1_bottom_cb1_14" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb1_15" /></td>
       </tr>
-      <!-- Zeile 3 -->
       <tr>
         <td><input type="text" id="holz1_bottom_name2" placeholder="Werfer 3" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb2_1" /></td>
@@ -237,7 +230,6 @@
         <td><input type="checkbox" id="holz1_bottom_cb2_14" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb2_15" /></td>
       </tr>
-      <!-- Zeile 4 -->
       <tr>
         <td><input type="text" id="holz1_bottom_name3" placeholder="Werfer 4" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb3_1" /></td>
@@ -256,7 +248,6 @@
         <td><input type="checkbox" id="holz1_bottom_cb3_14" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb3_15" /></td>
       </tr>
-      <!-- Zeile 5 -->
       <tr>
         <td><input type="text" id="holz1_bottom_name4" placeholder="Ersatz 1" /></td>
         <td><input type="checkbox" id="holz1_bottom_cb4_1" /></td>
@@ -279,43 +270,46 @@
   </table>
 </div>
 
-<!-- Ergebnis-Anzeige (nur zur Differenzanzeige) -->
+<!-- Ergebnis-Anzeige -->
 <div class="score-area">
   <strong>Ergebnis Schoet:</strong> <span id="ergebnisSchoet">0.0</span><br />
   <strong>Ergebnis Meter:</strong> <span id="ergebnisMeter">0</span>
 </div>
 
-<!-- Firebase SDKs und PDF-Konvertierung -->
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
+<!-- Neue Bibliotheken für PDF-Konvertierung -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
-  // Lese Wettkampfdaten aus URL-Parameter; Gruppe = "holz1"
+  // Lese die Wettkampfdaten aus dem URL-Parameter – für diese Datei gilt die Gruppe "holz2" (Scoreboard-Daten)
   const params = new URLSearchParams(window.location.search);
   const compId = params.get("compId") || "Keine ID";
+  // Für diese angepasste Datei soll nun die Holz1 Gruppe verwendet werden:
   const groupId = "holz1";
   
-  // Firebase-Initialisierung (nur einmal)
-  if (!firebase.apps.length) {
-    firebase.initializeApp({
-      apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
-      authDomain: "wettkampf-f6f92.firebaseapp.com",
-      databaseURL: "https://wettkampf-f6f92-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "wettkampf-f6f92",
-      storageBucket: "wettkampf-f6f92.firebasestorage.app",
-      messagingSenderId: "161090727748",
-      appId: "1:161090727748:web:33f4ff7ce4f6e5c08f7111",
-      measurementId: "G-WCV2950HGK"
-    });
-  }
+  // Firebase-Konfiguration – ggf. anpassen
+  const firebaseConfig = {
+    apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
+    authDomain: "wettkampf-f6f92.firebaseapp.com",
+    databaseURL: "https://wettkampf-f6f92-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "wettkampf-f6f92",
+    storageBucket: "wettkampf-f6f92.firebasestorage.app",
+    messagingSenderId: "161090727748",
+    appId: "1:161090727748:web:33f4ff7ce4f6e5c08f7111",
+    measurementId: "G-WCV2950HGK"
+  };
+  firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   
-  // LOCK-MECHANISMUS
+  // LOCK-MECHANISMUS: Nur ein Nutzer darf diese Seite (scoreboards/holz1) gleichzeitig verwenden.
+  // Hier verwenden wir einen separaten Lock-Pfad, der ausschließlich für scoreboardholz1 gilt.
   const pageName = "holz1";
   const lockRef = db.ref('competitions/' + compId + '/scoreboards/' + pageName + '/lock');
   const clientId = Math.random().toString(36).substr(2, 9);
+  
   lockRef.transaction(function(currentLock) {
     if (currentLock === null) {
       return clientId;
@@ -333,16 +327,23 @@
       }
       return;
     }
+    // Lock erfolgreich gesetzt
     lockRef.onDisconnect().remove();
     console.log("Lock erfolgreich gesetzt mit ID:", clientId);
+    
+    // Timeout-Mechanismus: Lock wird nach 1 Minute automatisch entfernt
     const lockTimeout = setTimeout(() => {
       lockRef.remove();
       console.log("Lock wurde nach 1 Minute automatisch entfernt.");
     }, 60000);
+    
+    // Entferne den Lock, wenn die Seite verlassen wird (Browser-Zurück, Schließen etc.)
     window.addEventListener("beforeunload", () => {
       lockRef.remove();
       clearTimeout(lockTimeout);
     });
+    
+    // Falls ein eigener "Zurück"-Button vorhanden ist, entferne den Lock auch dort
     const backBtn = document.getElementById("backBtn");
     if (backBtn) {
       backBtn.addEventListener("click", () => {
@@ -355,36 +356,32 @@
   // Element-Referenzen
   const topTeam = document.getElementById("topTeam");
   const bottomTeam = document.getElementById("bottomTeam");
+  
   const topTeamToggleBtn = document.getElementById("topTeamToggleBtn");
   const bottomTeamToggleBtn = document.getElementById("bottomTeamToggleBtn");
+  
   const topSchoetBtn = document.getElementById("topSchoetBtn");
   const bottomSchoetBtn = document.getElementById("bottomSchoetBtn");
+  
   const topRemoveSchoetBtn = document.getElementById("topRemoveSchoetBtn");
   const bottomRemoveSchoetBtn = document.getElementById("bottomRemoveSchoetBtn");
+  
   const topSchoetDisplay = document.getElementById("topSchoetDisplay");
   const bottomSchoetDisplay = document.getElementById("bottomSchoetDisplay");
+  
   const topMeterInput = document.getElementById("topMeterInput");
   const bottomMeterInput = document.getElementById("bottomMeterInput");
+  
   const ergebnisSchoet = document.getElementById("ergebnisSchoet");
   const ergebnisMeter = document.getElementById("ergebnisMeter");
+  
   const genderSelect = document.getElementById("genderSelect");
   
-  // Globale Variablen für Schöt-Zähler
+  // Globale Variablen
   let topSchoet = 0;
   let bottomSchoet = 0;
-  // Globale Variablen für vorherige Checkbox-Zählung
-  let prevUpper = 0;
-  let prevLower = 0;
   
-  // Hilfsfunktion: Zählt die gecheckten Checkboxen in einer Tabelle
-  function countChecked(tableId) {
-    const checkboxes = document.querySelectorAll(`# input[type="checkbox"]`);
-    let count = 0;
-    checkboxes.forEach(cb => { if (cb.checked) count++; });
-    return count;
-  }
-  
-  // Funktion zum Speichern des Zustands (ohne Checkbox-Zählung in der Anzeige)
+  // Funktion zum Speichern des Zustands in Firebase (inkl. Tabellen und Ergebnis-Anzeige)
   function saveState() {
     const state = {
       topTeam: {
@@ -432,7 +429,7 @@
     return data;
   }
   
-  // Funktion zum Laden des Zustands aus Firebase und Setzen der prev‑Werte
+  // Funktion zum Laden des Zustands aus Firebase
   function loadState() {
     db.ref('competitions/' + compId + '/groups/' + groupId + '/scoreboard').once('value')
       .then(snapshot => {
@@ -468,9 +465,6 @@
           ergebnisSchoet.textContent = state.resultSchoet || "0.0";
           ergebnisMeter.textContent = state.resultMeter || "0";
           calculateResult();
-          // Setze prev‑Zähler auf aktuellen Stand
-          prevUpper = countChecked("upperTable");
-          prevLower = countChecked("lowerTable");
         }
       })
       .catch(err => {
@@ -573,56 +567,6 @@
   }
   addTableInputListeners();
   
-  // Neue Funktion: Prüft, ob ein Team mindestens 2 neue Würfe (Checkboxen) erzielt hat, während das andere Team nichts neu hat.
-  // Im Fall von 2 neuen Würfen beim Auswärtsteam (untere Tabelle) erhält das Heimteam (obere Tabelle) – falls es noch nicht führt – die Führung; falls es bereits führt, bekommt es einen zusätzlichen Schöt.
-  // Analog bei 2 neuen Würfen beim Heimteam.
-  function checkConsecutiveThrows() {
-    const currentUpper = countChecked("upperTable");
-    const currentLower = countChecked("lowerTable");
-    const deltaUpper = currentUpper - prevUpper;
-    const deltaLower = currentLower - prevLower;
-    
-    // Wenn das Auswärtsteam (untere Tabelle) 2 oder mehr neue Würfe hat und das Heimteam (obere Tabelle) nichts neu dazugekommen ist:
-    if (deltaLower >= 2 && deltaUpper === 0) {
-      if (!topTeam.classList.contains("green")) {
-        // Wechsle Führung: Heimteam erhält Führung
-        topTeam.classList.add("green");
-        topTeam.classList.remove("red");
-        bottomTeam.classList.add("red");
-        bottomTeam.classList.remove("green");
-        console.log("Führung gewechselt: Heimteam erhält Führung.");
-      } else {
-        // Falls Heimteam bereits führt, erhöhter Schöt
-        topSchoet++;
-        topSchoetDisplay.textContent = topSchoet;
-        console.log("Heimteam führt bereits – erhält einen zusätzlichen Schöt.");
-      }
-      // Aktualisiere die vorherigen Zähler
-      prevUpper = currentUpper;
-      prevLower = currentLower;
-    }
-    // Wenn das Heimteam (obere Tabelle) 2 oder mehr neue Würfe hat und das Auswärtsteam (untere Tabelle) nichts neu hat:
-    else if (deltaUpper >= 2 && deltaLower === 0) {
-      if (!bottomTeam.classList.contains("green")) {
-        // Wechsle Führung: Auswärtsteam erhält Führung
-        bottomTeam.classList.add("green");
-        bottomTeam.classList.remove("red");
-        topTeam.classList.add("red");
-        topTeam.classList.remove("green");
-        console.log("Führung gewechselt: Auswärtsteam erhält Führung.");
-      } else {
-        // Falls Auswärtsteam bereits führt, erhöhter Schöt
-        bottomSchoet++;
-        bottomSchoetDisplay.textContent = bottomSchoet;
-        console.log("Auswärtsteam führt bereits – erhält einen zusätzlichen Schöt.");
-      }
-      prevUpper = currentUpper;
-      prevLower = currentLower;
-    }
-    // Sonst: keine Änderung an den prev‑Werten
-  }
-  
-  // calculateResult() – berechnet die Differenzen, ruft dann checkConsecutiveThrows() auf und speichert den Zustand
   function calculateResult() {
     let meterDiff = parseInt(topMeterInput.value) - parseInt(bottomMeterInput.value);
     let schoeetDiff = topSchoet - bottomSchoet;
@@ -649,11 +593,6 @@
     
     ergebnisSchoet.textContent = schoeetDiff.toFixed(1);
     ergebnisMeter.textContent = meterDiff.toFixed(0);
-    
-    // Prüfe, ob ein Team 2 neue Würfe erzielt hat, während das andere nichts hinzugefügt hat
-    checkConsecutiveThrows();
-    
-    // Speichere den Zustand in Firebase
     saveState();
   }
   
@@ -671,6 +610,7 @@
   });
   document.body.appendChild(backBtn);
   
+  // Neuer Konvertieren-Button: Erzeugt einen Screenshot der Seite und konvertiert diesen in ein PDF (halbe DIN-A4, 210x148,5 mm)
   const convertBtn = document.createElement("button");
   convertBtn.id = "convertBtn";
   convertBtn.textContent = "Konvertieren zu PDF";
