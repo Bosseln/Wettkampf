@@ -108,7 +108,7 @@
             // In diesem Fall ersetzen wir den bisherigen Text durch:
             // Oben: Gruppenname in den gleichen Stilen wie früher der Text "Ergebnis:" 
             // Unten: Nur der Ergebniswert
-            box.innerHTML = `<div class="groupName"></div><div></div>`;
+            box.innerHTML = `<div class="groupName">${g.name}</div><div>${result}</div>`;
             if (role === "schreiber") {
               box.style.cursor = "pointer";
               box.addEventListener("click", () => {
@@ -125,7 +125,7 @@
             const box = document.createElement("div");
             box.className = "groupBox";
             box.style.backgroundColor = "gray";
-            box.innerHTML = `<div class="groupName"></div><div></div>`;
+            box.innerHTML = `<div class="groupName">${g.name}</div><div>${result}</div>`;
             if (role === "schreiber") {
               box.style.cursor = "pointer";
               box.addEventListener("click", () => {
