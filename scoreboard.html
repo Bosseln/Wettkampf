@@ -69,12 +69,20 @@
     const db = firebase.database();
     
     // Lese compId und compName aus der URL, z. B. ?compId=ABC123&compName=MeinWettkampf
+    // Lese compId aus der URL
     const params = new URLSearchParams(window.location.search);
     const compId = params.get("compId") || "Keine ID";
-    const compName = params.get("compName") || "Kein Name";
-    const role = params.get("role") || "zuschauer";
     document.getElementById("compIdDisplay").textContent = compId;
-    document.getElementById("compNameDisplay").textContent = compName;
+    
+    // Lade den Wettkampfnamen aus Firebase anhand der compId
+    db.ref('competitions/' + compId + '/name').once('value')
+      .then(snapshot => {
+        const compNameFromFirebase = snapshot.val() || "Kein Name";
+        document.getElementById("compNameDisplay").textContent = compNameFromFirebase;
+      })
+      .catch(error => {
+        console.error("Fehler beim Laden des Wettkampfnamens:", error);
+      });
     
     // Definiere die Gruppen und deren Zielseiten
     const groups = [
