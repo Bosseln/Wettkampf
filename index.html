@@ -19,19 +19,35 @@
     <h2>Wettkampf erstellen</h2>
     <label for="compName">Wettkampfname:</label>
     <input type="text" id="compName" placeholder="Wettkampfname"><br>
+    <label for="compPassword">Passwort:</label>
+    <input type="password" id="compPassword" placeholder="Passwort"><br>
     <button id="createCompBtn">Wettkampf erstellen</button>
   </div>
   
-  <!-- Bereich Wettkampf beitreten -->
+  <!-- Aktive Wettkämpfe -->
   <div class="container">
-    <h2>Wettkampf beitreten</h2>
-    <label for="joinCompId">Wettkampf-ID:</label>
-    <input type="text" id="joinCompId" placeholder="Wettkampf-ID"><br>
-    <button id="joinCompBtn">Beitreten</button>
+    <h2>Aktive Wettkämpfe</h2>
+    <div id="activeCompetitions"></div>
   </div>
   
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
   <script>
-    // Funktion zur Generierung einer zufälligen Wettkampf-ID (6 Zeichen)
+    // Firebase-Konfiguration (bitte mit deinen eigenen Daten ersetzen)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DATABASE_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    // Funktion zur Erzeugung einer zufälligen Wettkampf-ID
     function generateCompId(length) {
       let result = '';
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -41,29 +57,74 @@
       return result;
     }
     
-    // Erstellen eines Wettkampfs
+    // Wettkampf erstellen
     document.getElementById("createCompBtn").addEventListener("click", () => {
       const compName = document.getElementById("compName").value.trim();
-      if (!compName) {
-        alert("Bitte einen Wettkampfname eingeben.");
+      const compPassword = document.getElementById("compPassword").value;
+      if (!compName || !compPassword) {
+        alert("Bitte sowohl einen Wettkampfnamen als auch ein Passwort eingeben.");
         return;
       }
       const compId = generateCompId(6);
-      // Weiterleitung an scoreboard.html mit compId und compName als Parameter
-      window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) +
-                               "&compName=" + encodeURIComponent(compName);
+      const compData = {
+        name: compName,
+        password: compPassword,
+        createdAt: Date.now()
+      };
+      db.ref('competitions/' + compId).set(compData, (error) => {
+        if (error) {
+          alert("Fehler beim Erstellen des Wettkampfs.");
+        } else {
+          alert("Wettkampf erstellt: " + compId);
+          // Ersteller erhält sofort Schreibrechte
+          window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) + "&role=schreiber";
+        }
+      });
     });
     
-    // Beitreten eines bestehenden Wettkampfs
-    document.getElementById("joinCompBtn").addEventListener("click", () => {
-      const joinCompId = document.getElementById("joinCompId").value.trim();
-      if (!joinCompId) {
-        alert("Bitte eine Wettkampf-ID eingeben.");
-        return;
+    // Aktive Wettbewerbe laden
+    function loadActiveCompetitions() {
+      db.ref('competitions').on('value', snapshot => {
+        const competitions = snapshot.val();
+        const activeContainer = document.getElementById("activeCompetitions");
+        activeContainer.innerHTML = "";
+        if (competitions) {
+          for (const compId in competitions) {
+            const comp = competitions[compId];
+            // Button für jeden aktiven Wettkampf
+            const btn = document.createElement("button");
+            btn.textContent = comp.name + " (" + compId + ")";
+            btn.addEventListener("click", () => {
+              joinCompetition(compId, comp);
+            });
+            activeContainer.appendChild(btn);
+            activeContainer.appendChild(document.createElement("br"));
+          }
+        } else {
+          activeContainer.textContent = "Keine aktiven Wettkämpfe gefunden.";
+        }
+      });
+    }
+    
+    // Funktion, um einem Wettkampf beizutreten
+    function joinCompetition(compId, comp) {
+      const role = prompt("Möchtest du als 'zuschauer' oder 'schreiber' beitreten? (Bitte exakt eingeben)");
+      if (!role) return;
+      if (role.toLowerCase() === "zuschauer") {
+        window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) + "&role=zuschauer";
+      } else if (role.toLowerCase() === "schreiber") {
+        const enteredPassword = prompt("Bitte Passwort eingeben:");
+        if (enteredPassword === comp.password) {
+          window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) + "&role=schreiber";
+        } else {
+          alert("Falsches Passwort.");
+        }
+      } else {
+        alert("Ungültige Eingabe. Bitte 'zuschauer' oder 'schreiber' eingeben.");
       }
-      // Weiterleitung an scoreboard.html mit der eingegebenen Wettkampf-ID
-      window.location.href = "scoreboard.html?compId=" + encodeURIComponent(joinCompId);
-    });
+    }
+    
+    loadActiveCompetitions();
   </script>
 </body>
 </html>
