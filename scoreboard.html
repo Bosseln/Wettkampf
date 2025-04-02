@@ -1,62 +1,60 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <title>Scoreboard – Boßel Wettkampfrechner</title>
+  <meta charset="UTF-8">
+  <title>Wettkampf – Gruppe auswählen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Optionale PWA-Tags -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-  
-  <!-- Firebase SDKs (Compat-Versionen) -->
-  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
-  
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
-    h1, h2, h3 { margin: 10px 0; }
-    .container { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; }
-    select, input, button { margin: 5px; padding: 5px; }
-    .table-container { overflow-x: auto; margin-top: 10px; }
-    table { border-collapse: collapse; width: 100%; max-width: 900px; }
-    th, td { border: 1px solid #000; padding: 5px; text-align: center; }
-    .team-header { color: #fff; padding: 10px; margin-bottom: 5px; }
-    .red { background-color: red; }
-    .green { background-color: green; }
-    .score-area { margin: 10px 0; font-size: 1.1em; }
-    .resultSummary { font-size: 0.9em; margin-top: 20px; }
-    .groupHeader { font-weight: bold; margin-top: 20px; }
-    .toggleBtn { min-width: 80px; }
+    .container { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+    .groupBox {
+      padding: 15px;
+      margin: 10px 0;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+    }
+    /* Gruppennamen oben: Weiß, Fett und 1.2em */
+    .groupBox .groupName {
+      font-weight: bold;
+      font-size: 1.2em;
+      margin-bottom: 5px;
+      color: #fff;
+    }
+    button.refreshBtn {
+      padding: 10px 15px;
+      font-size: 1em;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <h1>Scoreboard – Boßel Wettkampfrechner</h1>
+  <h1>Wettkampf erstellt</h1>
   
-  <!-- Anzeige der Wettkampf-ID -->
+  <!-- Anzeige von Wettkampfname und Wettkampf-ID -->
   <div class="container">
-    <strong>Wettkampf-ID:</strong> <span id="compIdDisplay"></span>
+    <p><strong>Wettkampfname:</strong> <span id="compNameDisplay"></span></p>
+    <p><strong>Wettkampf-ID:</strong> <span id="compIdDisplay"></span></p>
+    <p>Teile die Wettkampf-ID, damit andere dem Wettkampf beitreten können.</p>
   </div>
   
-  <!-- Dropdown zur Gruppenauswahl -->
+  <!-- Aktualisieren-Button -->
   <div class="container">
-    <label for="groupSelect">Gruppe auswählen:</label>
-    <select id="groupSelect">
-      <option value="holz1">Holz 1</option>
-      <option value="holz2">Holz 2</option>
-      <option value="gummi1">Gummi 1</option>
-      <option value="gummi2">Gummi 2</option>
-    </select>
+    <button class="refreshBtn" id="refreshBtn">Ergebnisse aktualisieren</button>
   </div>
   
-  <!-- Container für die detaillierte Ansicht der Original-Oberfläche -->
-  <div class="container" id="scoreboardContainer"></div>
+  <!-- Container für die Gruppenselektion (Summary-Boxen) -->
+  <div class="container" id="groupsContainer">
+    <h2>Gruppe auswählen</h2>
+    <!-- Die Boxen werden hier dynamisch erstellt -->
+  </div>
   
-  <!-- Zusammenfassung aller Gruppen -->
-  <div class="container resultSummary" id="summaryContainer"></div>
-  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
   <script>
-    /******** Firebase-Konfiguration ********/
+    // Firebase-Konfiguration – passe diese Werte ggf. an
     const firebaseConfig = {
       apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
       authDomain: "wettkampf-f6f92.firebaseapp.com",
@@ -70,341 +68,75 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    /******** Wettkampf-ID aus URL lesen ********/
-    function getCompIdFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("compId");
-    }
-    const compId = getCompIdFromUrl();
-    if (!compId) { alert("Keine Wettkampf-ID gefunden!"); }
+    // Lese compId und compName aus der URL, z. B. ?compId=ABC123&compName=MeinWettkampf
+    const params = new URLSearchParams(window.location.search);
+    const compId = params.get("compId") || "Keine ID";
+    const compName = params.get("compName") || "Kein Name";
     document.getElementById("compIdDisplay").textContent = compId;
+    document.getElementById("compNameDisplay").textContent = compName;
     
-    /******** Definition der Gruppen ********/
+    // Definiere die Gruppen und deren Zielseiten
     const groups = [
-      { id: "holz1", name: "Holz 1" },
-      { id: "holz2", name: "Holz 2" },
-      { id: "gummi1", name: "Gummi 1" },
-      { id: "gummi2", name: "Gummi 2" }
+      { id: "holz1", name: "Holz 1", target: "scoreboardholz1.html" },
+      { id: "holz2", name: "Holz 2", target: "scoreboardholz2.html" },
+      { id: "gummi1", name: "Gummi 1", target: "scoreboardgummi1.html" },
+      { id: "gummi2", name: "Gummi 2", target: "scoreboardgummi2.html" }
     ];
-    let groupStates = {};  // Speichert den Zustand jeder Gruppe
-    let selectedGroup = "holz1";  // Standardmäßig "Holz 1"
     
-    /******** DOM-Elemente ********/
-    const groupSelect = document.getElementById("groupSelect");
-    const scoreboardContainer = document.getElementById("scoreboardContainer");
-    const summaryContainer = document.getElementById("summaryContainer");
+    const groupBoxesContainer = document.getElementById("groupsContainer");
     
-    groupSelect.value = selectedGroup;
-    groupSelect.addEventListener("change", (e) => {
-      // Vor dem Wechsel speichern wir eventuell den aktuellen Zustand – 
-      // in diesem Beispiel geschieht das über die Event-Listener der Eingaben.
-      selectedGroup = e.target.value;
-      renderDetailedView(selectedGroup);
-    });
-    
-    /******** Funktionen zur Generierung der Original-Oberfläche ********/
-    // Erzeugt den HTML-Code für eine Tabelle mit 5 Zeilen (Werfer 1, …, Ersatz 1) und 15 Spalten (Checkboxen)
-    function getFullTableHTML(prefix) {
-      const rows = ["Werfer 1", "Werfer 2", "Werfer 3", "Werfer 4", "Ersatz 1"];
-      let html = "<table><thead><tr><th>Werfer</th>";
-      for (let i = 1; i <= 15; i++) {
-        html += `<th></th>`;
-      }
-      html += "</tr></thead><tbody>";
-      for (let r = 0; r < rows.length; r++) {
-        html += "<tr>";
-        // Textfeld für den Namen
-        html += `<td><input type="text" id="_name" placeholder=""></td>`;
-        for (let c = 1; c <= 15; c++) {
-          html += `<td><input type="checkbox" id="_cb_"></td>`;
-        }
-        html += "</tr>";
-      }
-      html += "</tbody></table>";
-      return html;
-    }
-    
-    // Erzeugt den HTML-Code der detaillierten Ansicht für eine Gruppe
-    function getDetailedHTML(groupId, groupName) {
-      return `
-        <h2> – Detaillierte Ansicht</h2>
-        <!-- Oberes Team -->
-        <div id="_topTeam" class="team-header red">
-          <button class="toggleBtn" id="_topTeamToggleBtn">Führung</button>
-          <input type="text" id="_topVerein" placeholder="Verein eintragen..." />
-          <button id="_topSchoetBtn">Schöööööt!</button>
-          &nbsp;Schoet: <span id="_topSchoetDisplay">0</span>
-          &nbsp;Meter: <input type="number" id="_topMeterInput" value="0" />
-        </div>
-        <div class="table-container">
-          
-        </div>
-        <!-- Unteres Team -->
-        <div id="_bottomTeam" class="team-header green">
-          <button class="toggleBtn" id="_bottomTeamToggleBtn">Führung</button>
-          <input type="text" id="_bottomVerein" placeholder="Verein eintragen..." />
-          <button id="_bottomSchoetBtn">Schöööööt!</button>
-          &nbsp;Schoet: <span id="_bottomSchoetDisplay">0</span>
-          &nbsp;Meter: <input type="number" id="_bottomMeterInput" value="0" />
-        </div>
-        <div class="table-container">
-          
-        </div>
-        <!-- Ergebnis-Anzeige -->
-        <div class="score-area">
-          <strong>Ergebnis Schoet:</strong> <span id="_ergebnisSchoet">0.0</span><br />
-          <strong>Ergebnis Meter:</strong> <span id="_ergebnisMeter">0</span>
-        </div>
-      `;
-    }
-    
-    // Rendert die detaillierte Ansicht in den Container
-    function renderDetailedView(groupId) {
-      const groupName = groups.find(g => g.id === groupId).name;
-      scoreboardContainer.innerHTML = getDetailedHTML(groupId, groupName);
-      setupDetailedListeners(groupId);
-      // Wenn bereits ein Zustand für diese Gruppe existiert, UI updaten
-      if (groupStates[groupId]) {
-        updateDetailedUI(groupId, groupStates[groupId]);
-      }
-    }
-    
-    /******** Event-Listener und Speichern der Zustände in der detaillierten Ansicht ********/
-    function setupDetailedListeners(groupId) {
-      // OBEN
-      const topTeamToggleBtn = document.getElementById(`_topTeamToggleBtn`);
-      const topVerein = document.getElementById(`_topVerein`);
-      const topSchoetBtn = document.getElementById(`_topSchoetBtn`);
-      const topSchoetDisplay = document.getElementById(`_topSchoetDisplay`);
-      const topMeterInput = document.getElementById(`_topMeterInput`);
-      let topNames = [];
-      let topCheckboxes = [];
-      for (let r = 0; r < 5; r++) {
-        topNames.push(document.getElementById(`_name`));
-        let row = [];
-        for (let c = 1; c <= 15; c++) {
-          row.push(document.getElementById(`_cb_`));
-        }
-        topCheckboxes.push(row);
-      }
-      // UNTEN
-      const bottomTeamToggleBtn = document.getElementById(`_bottomTeamToggleBtn`);
-      const bottomVerein = document.getElementById(`_bottomVerein`);
-      const bottomSchoetBtn = document.getElementById(`_bottomSchoetBtn`);
-      const bottomSchoetDisplay = document.getElementById(`_bottomSchoetDisplay`);
-      const bottomMeterInput = document.getElementById(`_bottomMeterInput`);
-      let bottomNames = [];
-      let bottomCheckboxes = [];
-      for (let r = 0; r < 5; r++) {
-        bottomNames.push(document.getElementById(`_name`)); // Annahme: Die unteren 5 Zeilen folgen unmittelbar
-        let row = [];
-        for (let c = 1; c <= 15; c++) {
-          row.push(document.getElementById(`_cb_`));
-        }
-        bottomCheckboxes.push(row);
-      }
+    // Erstelle für jede Gruppe eine Box: Oben der Gruppenname (als "Label") und darunter der Wert resultSchoet
+    function updateGroupBoxes() {
+      groupBoxesContainer.innerHTML = "<h2>Gruppe auswählen</h2>";
       
-      function saveState() {
-        const state = {
-          topTeam: {
-            verein: topVerein.value,
-            schoet: Number(topSchoetDisplay.textContent),
-            meter: Number(topMeterInput.value),
-            leadership: document.getElementById(`_topTeam`).classList.contains("green"),
-            names: topNames.map(input => input.value),
-            checkboxes: topCheckboxes.map(row => row.map(cb => cb.checked))
-          },
-          bottomTeam: {
-            verein: bottomVerein.value,
-            schoet: Number(bottomSchoetDisplay.textContent),
-            meter: Number(bottomMeterInput.value),
-            leadership: document.getElementById(`_bottomTeam`).classList.contains("green"),
-            names: bottomNames.map(input => input.value),
-            checkboxes: bottomCheckboxes.map(row => row.map(cb => cb.checked))
-          }
-        };
-        // Speichern des Zustands in Firebase unter: competitions/{compId}/groups/{groupId}
-        db.ref('competitions/' + compId + '/groups/' + groupId).set(state);
-      }
-      
-      topTeamToggleBtn.addEventListener("click", () => {
-        const topTeam = document.getElementById(`_topTeam`);
-        const bottomTeam = document.getElementById(`_bottomTeam`);
-        // Umschalten der Farben: Wir setzen topTeam rot/green und bottomTeam entsprechend um
-        if (topTeam.classList.contains("red")) {
-          topTeam.classList.remove("red");
-          topTeam.classList.add("green");
-        } else {
-          topTeam.classList.remove("green");
-          topTeam.classList.add("red");
-        }
-        if (bottomTeam.classList.contains("green")) {
-          bottomTeam.classList.remove("green");
-          bottomTeam.classList.add("red");
-        } else {
-          bottomTeam.classList.remove("red");
-          bottomTeam.classList.add("green");
-        }
-        calculateResult();
-      });
-      
-      bottomTeamToggleBtn.addEventListener("click", () => {
-        const topTeam = document.getElementById(`_topTeam`);
-        const bottomTeam = document.getElementById(`_bottomTeam`);
-        if (bottomTeam.classList.contains("green")) {
-          bottomTeam.classList.remove("green");
-          bottomTeam.classList.add("red");
-        } else {
-          bottomTeam.classList.remove("red");
-          bottomTeam.classList.add("green");
-        }
-        if (topTeam.classList.contains("red")) {
-          topTeam.classList.remove("red");
-          topTeam.classList.add("green");
-        } else {
-          topTeam.classList.remove("green");
-          topTeam.classList.add("red");
-        }
-        calculateResult();
-      });
-      
-      topSchoetBtn.addEventListener("click", () => {
-        let count = Number(topSchoetDisplay.textContent);
-        count++;
-        topSchoetDisplay.textContent = count;
-        calculateResult();
-      });
-      
-      bottomSchoetBtn.addEventListener("click", () => {
-        let count = Number(bottomSchoetDisplay.textContent);
-        count++;
-        bottomSchoetDisplay.textContent = count;
-        calculateResult();
-      });
-      
-      topMeterInput.addEventListener("input", calculateResult);
-      bottomMeterInput.addEventListener("input", calculateResult);
-      
-      // Alle Eingaben speichern
-      topNames.forEach(input => input.addEventListener("input", saveState));
-      bottomNames.forEach(input => input.addEventListener("input", saveState));
-      topCheckboxes.forEach(row => row.forEach(cb => cb.addEventListener("change", saveState)));
-      bottomCheckboxes.forEach(row => row.forEach(cb => cb.addEventListener("change", saveState)));
-      
-      function calculateResult() {
-        let meterDiff = parseInt(topMeterInput.value) - parseInt(bottomMeterInput.value);
-        let schoeetDiff = Number(topSchoetDisplay.textContent) - Number(bottomSchoetDisplay.textContent);
-        let gender = document.getElementById("genderSelect").value;
-        let threshold = (gender === "men") ? 150 : 100;
-        let absMeterDiff = Math.abs(meterDiff);
-        let extraSchoet = Math.floor(absMeterDiff / threshold);
-      
-        if (meterDiff > 0) {
-          schoeetDiff += extraSchoet;
-          meterDiff = meterDiff % threshold;
-        } else if (meterDiff < 0) {
-          schoeetDiff -= extraSchoet;
-          let leftover = absMeterDiff % threshold;
-          meterDiff = -leftover;
-        }
-      
-        // Zusätzliche Anpassung: Führungsschalter
-        const topTeam = document.getElementById(`_topTeam`);
-        const bottomTeam = document.getElementById(`_bottomTeam`);
-        if (bottomTeam.classList.contains("green") && schoeetDiff > 0) {
-          schoeetDiff -= 0.5;
-        } else if (topTeam.classList.contains("green") && schoeetDiff < 0) {
-          schoeetDiff += 0.5;
-        }
-      
-        document.getElementById(`_ergebnisSchoet`).textContent = schoeetDiff.toFixed(1);
-        document.getElementById(`_ergebnisMeter`).textContent = meterDiff.toFixed(0);
-        saveState();
-      }
-    }
-    
-    function updateDetailedUI(groupId, state) {
-      if (!state) return;
-      document.getElementById(`_topVerein`).value = state.topTeam.verein;
-      document.getElementById(`_topSchoetDisplay`).textContent = state.topTeam.schoet;
-      document.getElementById(`_topMeterInput`).value = state.topTeam.meter;
-      const topTeam = document.getElementById(`_topTeam`);
-      if (state.topTeam.leadership) {
-        topTeam.classList.add("green");
-        topTeam.classList.remove("red");
-      } else {
-        topTeam.classList.add("red");
-        topTeam.classList.remove("green");
-      }
-      for (let r = 0; r < 5; r++) {
-        document.getElementById(`_name`).value = state.topTeam.names[r] || "";
-        for (let c = 1; c <= 15; c++) {
-          document.getElementById(`_cb_`).checked = state.topTeam.checkboxes[r][c-1];
-        }
-      }
-      document.getElementById(`_bottomVerein`).value = state.bottomTeam.verein;
-      document.getElementById(`_bottomSchoetDisplay`).textContent = state.bottomTeam.schoet;
-      document.getElementById(`_bottomMeterInput`).value = state.bottomTeam.meter;
-      const bottomTeam = document.getElementById(`_bottomTeam`);
-      if (state.bottomTeam.leadership) {
-        bottomTeam.classList.add("green");
-        bottomTeam.classList.remove("red");
-      } else {
-        bottomTeam.classList.add("red");
-        bottomTeam.classList.remove("green");
-      }
-      for (let r = 0; r < 5; r++) {
-        document.getElementById(`_name`).value = state.bottomTeam.names[r] || "";
-        for (let c = 1; c <= 15; c++) {
-          document.getElementById(`_cb_`).checked = state.bottomTeam.checkboxes[r][c-1];
-        }
-      }
-    }
-    
-    /******** Firebase Live-Listener und Summary ********/
-    function setupFirebaseListeners() {
       groups.forEach(g => {
-        db.ref('competitions/' + compId + '/groups/' + g.id).on('value', snapshot => {
-          const state = snapshot.val();
-          if (state) {
-            groupStates[g.id] = state;
-            if (g.id === selectedGroup) {
-              updateDetailedUI(g.id, state);
-            }
-            updateSummary();
-          }
-        });
+        // Hier wird der gesamte Zustand der Gruppe geladen
+        db.ref('competitions/' + compId + '/groups/' + g.id + '/scoreboard').once('value')
+          .then(snapshot => {
+            const data = snapshot.val() || {};
+            // Falls resultSchoet nicht existiert, nutze 0
+            const result = (data.resultSchoet !== undefined) ? data.resultSchoet : 0;
+            // Hintergrundfarbe anhand der Führung – sofern topTeam.leadership definiert ist
+            const bgColor = (data.topTeam && typeof data.topTeam.leadership === "boolean")
+              ? (data.topTeam.leadership ? "green" : "red")
+              : "gray";
+            
+            const box = document.createElement("div");
+            box.className = "groupBox";
+            box.style.backgroundColor = bgColor;
+            // In diesem Fall ersetzen wir den bisherigen Text durch:
+            // Oben: Gruppenname in den gleichen Stilen wie früher der Text "Ergebnis:" 
+            // Unten: Nur der Ergebniswert
+            box.innerHTML = `<div class="groupName"></div><div></div>`;
+            box.addEventListener("click", () => {
+              window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
+                                      "&compName=" + encodeURIComponent(compName);
+            });
+            groupBoxesContainer.appendChild(box);
+          })
+          .catch(err => {
+            console.error("Fehler beim Laden der Daten für " + g.name + ":", err);
+            const box = document.createElement("div");
+            box.className = "groupBox";
+            box.style.backgroundColor = "gray";
+            box.innerHTML = `<div class="groupName"></div><div></div>`;
+            box.addEventListener("click", () => {
+              window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
+                                      "&compName=" + encodeURIComponent(compName);
+            });
+            groupBoxesContainer.appendChild(box);
+          });
       });
     }
     
-    function updateSummary() {
-      let html = "<div class='groupHeader'>Ergebnisse aller Gruppen:</div>";
-      groups.forEach(g => {
-        if (groupStates[g.id]) {
-          const state = groupStates[g.id];
-          let diff = state.topTeam.schoet - state.bottomTeam.schoet;
-          let meterDiff = state.topTeam.meter - state.bottomTeam.meter;
-          if (state.bottomTeam.leadership && diff > 0) { diff -= 0.5; }
-          else if (state.topTeam.leadership && diff < 0) { diff += 0.5; }
-          let führer = "";
-          if (state.topTeam.schoet > state.bottomTeam.schoet) {
-            führer = state.topTeam.verein || "Team OBEN";
-          } else if (state.topTeam.schoet < state.bottomTeam.schoet) {
-            führer = state.bottomTeam.verein || "Team UNTEN";
-          } else {
-            führer = "gleichstand";
-          }
-          html += `<div>: Schoet Differenz  / Meter . Führung: </div>`;
-        } else {
-          html += `<div>: keine Daten</div>`;
-        }
-      });
-      summaryContainer.innerHTML = html;
-    }
+    // Initiales Laden der Gruppenboxen
+    updateGroupBoxes();
     
-    /******** Initialisierung ********/
-    setupFirebaseListeners();
-    renderDetailedView(selectedGroup);
+    // Automatische Aktualisierung alle 60 Sekunden
+    setInterval(updateGroupBoxes, 60000);
+    
+    // Button zum sofortigen Aktualisieren
+    document.getElementById("refreshBtn").addEventListener("click", updateGroupBoxes);
   </script>
 </body>
 </html>
