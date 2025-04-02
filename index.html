@@ -9,6 +9,8 @@
     .container { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
     label { font-weight: bold; }
     input, button { margin: 5px; padding: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
   </style>
 </head>
 <body>
@@ -19,19 +21,36 @@
     <h2>Wettkampf erstellen</h2>
     <label for="compName">Wettkampfname:</label>
     <input type="text" id="compName" placeholder="Wettkampfname"><br>
+    <label for="compPassword">Passwort:</label>
+    <input type="password" id="compPassword" placeholder="Passwort"><br>
     <button id="createCompBtn">Wettkampf erstellen</button>
   </div>
   
-  <!-- Bereich Wettkampf beitreten -->
+  <!-- Bereich: Liste aller aktiven Wettkämpfe -->
   <div class="container">
-    <h2>Wettkampf beitreten</h2>
-    <label for="joinCompId">Wettkampf-ID:</label>
-    <input type="text" id="joinCompId" placeholder="Wettkampf-ID"><br>
-    <button id="joinCompBtn">Beitreten</button>
+    <h2>Aktive Wettkämpfe</h2>
+    <div id="activeCompetitions">Lade Wettbewerbe...</div>
   </div>
   
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
   <script>
-    // Funktion zur Generierung einer zufälligen Wettkampf-ID (6 Zeichen)
+    // Firebase-Konfiguration – diese Werte aus deinen anderen Dateien übernehmen:
+    const firebaseConfig = {
+      apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
+      authDomain: "wettkampf-f6f92.firebaseapp.com",
+      databaseURL: "https://wettkampf-f6f92-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "wettkampf-f6f92",
+      storageBucket: "wettkampf-f6f92.firebasestorage.app",
+      messagingSenderId: "161090727748",
+      appId: "1:161090727748:web:33f4ff7ce4f6e5c08f7111",
+      measurementId: "G-WCV2950HGK"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    // Funktion zur Erzeugung einer zufälligen Wettkampf-ID (6 Zeichen)
     function generateCompId(length) {
       let result = '';
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -41,29 +60,100 @@
       return result;
     }
     
-    // Erstellen eines Wettkampfs
+    // Wettkampf erstellen – Name und Passwort werden in Firebase gespeichert
     document.getElementById("createCompBtn").addEventListener("click", () => {
       const compName = document.getElementById("compName").value.trim();
-      if (!compName) {
-        alert("Bitte einen Wettkampfname eingeben.");
+      const compPassword = document.getElementById("compPassword").value;
+      if (!compName || !compPassword) {
+        alert("Bitte sowohl einen Wettkampfnamen als auch ein Passwort eingeben.");
         return;
       }
       const compId = generateCompId(6);
-      // Weiterleitung an scoreboard.html mit compId und compName als Parameter
-      window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) +
-                               "&compName=" + encodeURIComponent(compName);
+      const compData = {
+        name: compName,
+        password: compPassword,
+        createdAt: Date.now()
+      };
+      // Speichern in Firebase unter "competitions/<compId>"
+      db.ref('competitions/' + compId).set(compData, (error) => {
+        if (error) {
+          alert("Fehler beim Erstellen des Wettkampfs.");
+          console.error("Firebase-Fehler:", error);
+        } else {
+          alert("Wettkampf erstellt: " + compId);
+          // Ersteller wird als Schreiber weitergeleitet
+          window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) + "&role=schreiber";
+        }
+      });
     });
     
-    // Beitreten eines bestehenden Wettkampfs
-    document.getElementById("joinCompBtn").addEventListener("click", () => {
-      const joinCompId = document.getElementById("joinCompId").value.trim();
-      if (!joinCompId) {
-        alert("Bitte eine Wettkampf-ID eingeben.");
-        return;
-      }
-      // Weiterleitung an scoreboard.html mit der eingegebenen Wettkampf-ID
-      window.location.href = "scoreboard.html?compId=" + encodeURIComponent(joinCompId);
-    });
+    // Aktive Wettbewerbe laden und in einer Tabelle anzeigen
+    function loadActiveCompetitions() {
+      db.ref('competitions').on('value', snapshot => {
+        const competitions = snapshot.val();
+        const activeContainer = document.getElementById("activeCompetitions");
+        activeContainer.innerHTML = "";
+        if (competitions) {
+          // Erstelle eine Tabelle für die aktiven Wettkämpfe
+          const table = document.createElement("table");
+          const headerRow = document.createElement("tr");
+          const thName = document.createElement("th");
+          thName.textContent = "Wettkampfname";
+          const thId = document.createElement("th");
+          thId.textContent = "Wettkampf-ID";
+          const thAction = document.createElement("th");
+          thAction.textContent = "Beitreten";
+          headerRow.appendChild(thName);
+          headerRow.appendChild(thId);
+          headerRow.appendChild(thAction);
+          table.appendChild(headerRow);
+          
+          // Für jeden Wettbewerb: Zeile mit zwei Buttons (Zuschauer, Schreiber)
+          for (const compId in competitions) {
+            const comp = competitions[compId];
+            const row = document.createElement("tr");
+            const cellName = document.createElement("td");
+            cellName.textContent = comp.name;
+            const cellId = document.createElement("td");
+            cellId.textContent = compId;
+            const cellAction = document.createElement("td");
+            
+            // Button für Zuschauer – direkt ohne Passwort
+            const btnZuschauer = document.createElement("button");
+            btnZuschauer.textContent = "Zuschauer";
+            btnZuschauer.addEventListener("click", () => {
+              window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) + "&role=zuschauer";
+            });
+            
+            // Button für Schreiber – Passwortabfrage erforderlich
+            const btnSchreiber = document.createElement("button");
+            btnSchreiber.textContent = "Schreiber";
+            btnSchreiber.addEventListener("click", () => {
+              const enteredPassword = prompt("Bitte Passwort eingeben:");
+              if (enteredPassword === comp.password) {
+                window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) + "&role=schreiber";
+              } else {
+                alert("Falsches Passwort.");
+              }
+            });
+            
+            cellAction.appendChild(btnZuschauer);
+            cellAction.appendChild(document.createTextNode(" "));
+            cellAction.appendChild(btnSchreiber);
+            
+            row.appendChild(cellName);
+            row.appendChild(cellId);
+            row.appendChild(cellAction);
+            table.appendChild(row);
+          }
+          activeContainer.appendChild(table);
+        } else {
+          activeContainer.textContent = "Keine aktiven Wettkämpfe gefunden.";
+        }
+      });
+    }
+    
+    loadActiveCompetitions();
   </script>
 </body>
 </html>
