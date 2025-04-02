@@ -70,10 +70,19 @@
     
     // Lese compId und compName aus der URL, z. B. ?compId=ABC123&compName=MeinWettkampf
     const params = new URLSearchParams(window.location.search);
-    const compId = params.get("compId") || "Keine ID";
-    const compName = params.get("compName") || "Kein Name";
-    document.getElementById("compIdDisplay").textContent = compId;
-    document.getElementById("compNameDisplay").textContent = compName;
+        const compId = params.get("compId") || "Keine ID";
+        document.getElementById("compIdDisplay").textContent = compId;
+        
+        let competitionName = "";
+        db.ref('competitions/' + compId + '/name').once('value')
+          .then(snapshot => {
+            competitionName = snapshot.val() || "Kein Name";
+            document.getElementById("compNameDisplay").textContent = competitionName;
+          })
+          .catch(error => {
+            console.error("Fehler beim Laden des Wettkampfnamens:", error);
+          });
+      });
     
     // Definiere die Gruppen und deren Zielseiten
     const groups = [
@@ -108,10 +117,16 @@
             // Oben: Gruppenname in den gleichen Stilen wie früher der Text "Ergebnis:" 
             // Unten: Nur der Ergebniswert
             box.innerHTML = `<div class="groupName">${g.name}</div><div>${result}</div>`;
-            box.addEventListener("click", () => {
-              window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
-                                      "&compName=" + encodeURIComponent(compName);
-            });
+            if (role === "schreiber") {
+              box.style.cursor = "pointer";
+              box.addEventListener("click", () => {
+                window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
+                                        "&compName=" + encodeURIComponent(competitionName) +
+                                        "&role=schreiber";
+              });
+            } else {
+              box.style.cursor = "default";
+            }
             groupBoxesContainer.appendChild(box);
           })
           .catch(err => {
@@ -120,10 +135,16 @@
             box.className = "groupBox";
             box.style.backgroundColor = "gray";
             box.innerHTML = `<div class="groupName">${g.name}</div><div>${result}</div>`;
-            box.addEventListener("click", () => {
-              window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
-                                      "&compName=" + encodeURIComponent(compName);
-            });
+            boxif (role === "schreiber") {
+              box.style.cursor = "pointer";
+              box.addEventListener("click", () => {
+                window.location.href = g.target + "?compId=" + encodeURIComponent(compId) +
+                                        "&compName=" + encodeURIComponent(competitionName) +
+                                        "&role=schreiber";
+              });
+            } else {
+              box.style.cursor = "default";
+            }
             groupBoxesContainer.appendChild(box);
           });
       });
