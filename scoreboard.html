@@ -1,130 +1,124 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Wettkampf erstellen / beitreten</title>
+  <meta charset="UTF-8" />
+  <title>Scoreboard – Boßel Wettkampfrechner</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     .container { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
-    label { font-weight: bold; }
     input, button { margin: 5px; padding: 5px; }
+    table { border-collapse: collapse; width: 100%; max-width: 900px; }
+    th, td { border: 1px solid #000; padding: 5px; text-align: center; }
   </style>
 </head>
 <body>
-  <h1>Wettkampf erstellen / beitreten</h1>
-  
-  <!-- Bereich Wettkampf erstellen -->
+  <h1>Scoreboard – Boßel Wettkampfrechner</h1>
   <div class="container">
-    <h2>Wettkampf erstellen</h2>
-    <label for="compName">Wettkampfname:</label>
-    <input type="text" id="compName" placeholder="Wettkampfname"><br>
-    <label for="compPassword">Passwort:</label>
-    <input type="password" id="compPassword" placeholder="Passwort"><br>
-    <button id="createCompBtn">Wettkampf erstellen</button>
+    <strong>Wettkampf-ID:</strong> <span id="compIdDisplay"></span>
   </div>
   
-  <!-- Aktive Wettkämpfe -->
-  <div class="container">
-    <h2>Aktive Wettkämpfe</h2>
-    <div id="activeCompetitions"></div>
+  <!-- Beispiel Scoreboard: Eine einfache Tabelle für zwei Runden -->
+  <div class="container" id="scoreboardContainer">
+    <table>
+      <thead>
+        <tr>
+          <th>Runde</th>
+          <th>Team A</th>
+          <th>Team B</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><input type="number" id="teamAScore1" value="0"></td>
+          <td><input type="number" id="teamBScore1" value="0"></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><input type="number" id="teamAScore2" value="0"></td>
+          <td><input type="number" id="teamBScore2" value="0"></td>
+        </tr>
+      </tbody>
+    </table>
+    <div>
+      <button id="calculateBtn">Ergebnis berechnen</button>
+      <button id="backBtn">Zurück</button>
+    </div>
+    <div>
+      <strong>Gesamtergebnis:</strong>
+      <span id="resultDisplay"></span>
+    </div>
   </div>
   
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database-compat.js"></script>
   <script>
-    // Firebase-Konfiguration (bitte mit deinen eigenen Daten ersetzen)
+    // Firebase-Konfiguration (wie in index.html)
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      databaseURL: "YOUR_DATABASE_URL",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyBj_ylDl8WgUnXbpwI1pfgWnvZSoQ9ML3A",
+      authDomain: "wettkampf-f6f92.firebaseapp.com",
+      databaseURL: "https://wettkampf-f6f92-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "wettkampf-f6f92",
+      storageBucket: "wettkampf-f6f92.firebasestorage.app",
+      messagingSenderId: "161090727748",
+      appId: "1:161090727748:web:33f4ff7ce4f6e5c08f7111",
+      measurementId: "G-WCV2950HGK"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     
-    // Funktion zur Erzeugung einer zufälligen Wettkampf-ID
-    function generateCompId(length) {
-      let result = '';
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-      for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    // Aus URL-Parametern lesen
+    const urlParams = new URLSearchParams(window.location.search);
+    const compId = urlParams.get("compId");
+    const role = urlParams.get("role") || "zuschauer"; // Standardmäßig Zuschauer
+    if (!compId) {
+      alert("Keine Wettkampf-ID gefunden!");
+    }
+    document.getElementById("compIdDisplay").textContent = compId;
+    
+    // Beispielhafte Funktion zum Berechnen des Gesamtergebnisses
+    function calculateResult() {
+      let teamASum = 0;
+      let teamBSum = 0;
+      const rounds = 2; // Anzahl der Runden
+      for (let i = 1; i <= rounds; i++) {
+        teamASum += Number(document.getElementById("teamAScore" + i).value);
+        teamBSum += Number(document.getElementById("teamBScore" + i).value);
       }
-      return result;
+      document.getElementById("resultDisplay").textContent = "Team A: " + teamASum + " - Team B: " + teamBSum;
+      // Ergebnis in Firebase speichern
+      const resultData = {
+        teamA: teamASum,
+        teamB: teamBSum,
+        timestamp: Date.now()
+      };
+      db.ref('competitions/' + compId + '/results').set(resultData);
     }
     
-    // Wettkampf erstellen
-    document.getElementById("createCompBtn").addEventListener("click", () => {
-      const compName = document.getElementById("compName").value.trim();
-      const compPassword = document.getElementById("compPassword").value;
-      if (!compName || !compPassword) {
-        alert("Bitte sowohl einen Wettkampfnamen als auch ein Passwort eingeben.");
-        return;
-      }
-      const compId = generateCompId(6);
-      const compData = {
-        name: compName,
-        password: compPassword,
-        createdAt: Date.now()
-      };
-      db.ref('competitions/' + compId).set(compData, (error) => {
-        if (error) {
-          alert("Fehler beim Erstellen des Wettkampfs.");
-        } else {
-          alert("Wettkampf erstellt: " + compId);
-          // Ersteller erhält sofort Schreibrechte
-          window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) + "&role=schreiber";
-        }
-      });
+    document.getElementById("calculateBtn").addEventListener("click", calculateResult);
+    document.getElementById("backBtn").addEventListener("click", () => {
+      window.location.href = "index.html";
     });
     
-    // Aktive Wettbewerbe laden
-    function loadActiveCompetitions() {
-      db.ref('competitions').on('value', snapshot => {
-        const competitions = snapshot.val();
-        const activeContainer = document.getElementById("activeCompetitions");
-        activeContainer.innerHTML = "";
-        if (competitions) {
-          for (const compId in competitions) {
-            const comp = competitions[compId];
-            // Button für jeden aktiven Wettkampf
-            const btn = document.createElement("button");
-            btn.textContent = comp.name + " (" + compId + ")";
-            btn.addEventListener("click", () => {
-              joinCompetition(compId, comp);
-            });
-            activeContainer.appendChild(btn);
-            activeContainer.appendChild(document.createElement("br"));
+    // Rollenspezifisches Verhalten: Zuschauer dürfen keine Eingaben tätigen
+    document.addEventListener("DOMContentLoaded", () => {
+      if (role === "zuschauer") {
+        // Alle Inputfelder deaktivieren
+        const inputs = document.querySelectorAll("input");
+        inputs.forEach(input => input.disabled = true);
+        // Buttons außer "Zurück" ausblenden
+        const buttons = document.querySelectorAll("button");
+        buttons.forEach(btn => {
+          if (btn.id !== "backBtn") {
+            btn.style.display = "none";
           }
-        } else {
-          activeContainer.textContent = "Keine aktiven Wettkämpfe gefunden.";
-        }
-      });
-    }
-    
-    // Funktion, um einem Wettkampf beizutreten
-    function joinCompetition(compId, comp) {
-      const role = prompt("Möchtest du als 'zuschauer' oder 'schreiber' beitreten? (Bitte exakt eingeben)");
-      if (!role) return;
-      if (role.toLowerCase() === "zuschauer") {
-        window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) + "&role=zuschauer";
-      } else if (role.toLowerCase() === "schreiber") {
-        const enteredPassword = prompt("Bitte Passwort eingeben:");
-        if (enteredPassword === comp.password) {
-          window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) + "&role=schreiber";
-        } else {
-          alert("Falsches Passwort.");
-        }
-      } else {
-        alert("Ungültige Eingabe. Bitte 'zuschauer' oder 'schreiber' eingeben.");
+        });
       }
-    }
+    });
     
-    loadActiveCompetitions();
+    // Hier könnte zusätzlicher Code folgen, um beispielsweise den Scoreboard-Zustand live aus Firebase zu laden.
   </script>
 </body>
 </html>
