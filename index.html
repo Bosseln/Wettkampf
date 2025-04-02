@@ -82,7 +82,9 @@
         } else {
           alert("Wettkampf erstellt: " + compId);
           // Ersteller wird als Schreiber weitergeleitet
-          window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) + "&role=schreiber";
+          window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) +
+                                   "&compName=" + encodeURIComponent(compName) +
+                                   "&role=schreiber";
         }
       });
     });
@@ -122,7 +124,9 @@
             const btnZuschauer = document.createElement("button");
             btnZuschauer.textContent = "Zuschauer";
             btnZuschauer.addEventListener("click", () => {
-              window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) + "&role=zuschauer";
+              window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) +
+                                       "&compName=" + encodeURIComponent(compName) +
+                                       "&role=schreiber";
             });
             
             // Button für Schreiber – Passwortabfrage erforderlich
@@ -131,7 +135,9 @@
             btnSchreiber.addEventListener("click", () => {
               const enteredPassword = prompt("Bitte Passwort eingeben:");
               if (enteredPassword === comp.password) {
-                window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) + "&role=schreiber";
+                window.location.href = "scoreboard.html?compId=" + encodeURIComponent(compId) +
+                                         "&compName=" + encodeURIComponent(compName) +
+                                         "&role=schreiber";
               } else {
                 alert("Falsches Passwort.");
               }
